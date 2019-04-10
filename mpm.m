@@ -247,7 +247,7 @@ end
 
 function mpmupdate()
     cCurDir = cd;
-    [d p] = mfilename('fullpath');
+    [d p] = fileparts(mfilename('fullpath'));
     cd(d);
     system('git pull origin master');
     cd(cCurDir);
