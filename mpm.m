@@ -44,6 +44,9 @@ function mpm(varargin)
             
         case 'init'
             mpminit();
+            
+        case 'update'
+            mpmupdate();
 
         case 'status'
             % Loop through packages and run a status on each
@@ -242,6 +245,14 @@ function cUrl = getRegisteredPackageURL(cPackageName)
     end
 end
 
+function mpmupdate()
+    cCurDir = cd;
+    [d p] = mfilename('fullpath');
+    cd(d);
+    system('git pull origin master');
+    cd(cCurDir);
+end
+
 function listPackages()
     fid         = fopen('registered-packages.json', 'r');
     cText       = fread(fid, inf, 'uint8=>char');
@@ -263,7 +274,11 @@ function listPackages()
 end
 
 function printHelp()
-    fprintf('---------------------------------\nMPM MATLAB package manager v1.0.0\n---------------------------------\n\n');
+    fid         = fopen('version', 'r');
+    cVersion       = fread(fid, inf, 'uint8=>char');
+    fclose(fid);
+    
+    fprintf('---------------------------------\nMPM MATLAB package manager %s\n---------------------------------\n\n', cVersion);
     fprintf('USAGE:\n');
     fprintf('> mpm init\n\tInits mpm to current directory\n\n');
     fprintf('> mpm list \n\tLists registered and available mpm packages\n\n');
@@ -271,5 +286,6 @@ function printHelp()
     fprintf('> mpm install [package name]\n\tInstalls/updates a specific named package\n\n');
     fprintf('> mpm status\n\tEchoes status of all mpm package git repos\n\n');
     fprintf('> mpm register [package name] [repo-url]\n\tRegisters a package to mpm\n\n');
+    fprintf('> mpm update\n\tPulls latest version of mpm\n\n');
     fprintf('> mpm addpath [<optional> path to mpm-packages dir]\n\tAdds mpm-packages to path\n\n');
 end
