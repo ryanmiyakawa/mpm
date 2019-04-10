@@ -74,7 +74,9 @@ function mpm(varargin)
 %             addpath(genpath(cPathVar));
             
         otherwise
-            error('Unknown directive "%s"', direct);
+            
+            error('Unknown directive "%s", run "mpm help" to see valid usage', direct);
+            
 
             
     end
