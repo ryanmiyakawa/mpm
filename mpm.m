@@ -1,0 +1,275 @@
+function mpm(varargin)
+
+
+    curDir = cd;
+
+    % Load package information from package.json
+    [cePackageNames, stPackages] = getPackageListFromJson('packages.json');
+
+
+    if isempty(varargin)
+        direct = 'help';
+    else
+        direct = varargin{1};
+    end
+
+%     try
+
+    switch direct
+        case 'install'
+            if length(varargin) == 1
+                % install/update all from packages.json
+                
+                for k = 1:length(cePackageNames)
+                    stPackages = installPackage(cePackageNames{k}, stPackages);
+                end
+
+            else
+                % Just install specific packages
+                cPackageName = regexprep(varargin{2}, '-', '_');
+                stPackages = installPackage(cPackageName, stPackages);
+            end
+            
+            % now write packages.json back to file:
+            fid         = fopen('packages.json', 'w');
+            fwrite(fid, jsonencode(stPackages));
+            fclose(fid);
+            
+        case 'help'
+            printHelp();
+        case 'list'
+            listPackages();
+            
+        case 'push'
+            
+        case 'init'
+            mpminit();
+
+        case 'status'
+            % Loop through packages and run a status on each
+            for k = 1:length(cePackageNames)
+                gitstatus(retrieveRepoName(cePackageNames{k}));
+            end
+
+        case 'register'
+            if length(varargin) ~= 3
+                error('Required format: mpm register [package name] [package git repo url]');
+            end
+            cPackageName = varargin{2};
+            cPackageNameSanitized = regexprep(varargin{2}, '-', '_');
+            cRepoName = varargin{3};
+            mpmregister(cPackageName, cPackageNameSanitized, cRepoName);
+        case 'addpath'
+            % adds path of mpm-packages to general path
+            if length(varargin) == 2
+                cPathVar = fullfile(varargin{2}, 'mpm-packages');
+            else
+                cPathVar = 'mpm-packages';
+            end
+            
+            fprintf('Adding %s to MATLAB path\n', cPathVar);
+%             addpath(genpath(cPathVar));
+            
+        otherwise
+            error('Unknown directive "%s"', direct);
+
+            
+    end
+    
+%     catch
+%         error (lasterr);
+%     end
+
+end
+
+function mpminit()
+% check if init has happened already:
+    if ~isempty(dir('packages.json')) && ~isempty(dir('mpm-packages'))
+        fprintf('MPM already initialized to directory %s \n', cd);
+    else
+        if isempty(dir('mpm-packages'))
+            mkdir('mpm-packages');
+        end
+        
+        if isempty(dir('packages.json'))
+            fid = fopen('packages.json', 'w');
+            fclose(fid);
+        end
+        fprintf('MPM initialized in directory %s \n', cd);
+    end
+end
+
+
+% Registers a package with mpm
+function mpmregister(cPackageName, cPackageNameSanitized, cRepoURL)
+    fid         = fopen('registered-packages.json', 'r');
+    cText       = fread(fid, inf, 'uint8=>char');
+    fclose(fid);
+    
+    stRegisteredPackages = jsondecode(cText);
+    ceFieldNames = fieldnames(stRegisteredPackages);
+    
+    if any(strcmp(ceFieldNames, cPackageNameSanitized))
+        fprintf('Package %s already registered with mpm\n', cPackageName);
+    else
+        fprintf('Registering package %s with mpm with url: %s\n\n', cRepoURL);
+        stRegisteredPackages.(cPackageNameSanitized).repo_url = cRepoURL;
+        stRegisteredPackages.(cPackageNameSanitized).repo_name = cPackageName;
+        
+        fid         = fopen('registered-packages.json', 'w');
+        fwrite(fid, jsonencode(stRegisteredPackages));
+        fclose(fid);
+    end
+end
+
+% Retrieves a "proper" package name from sanitized name.  Required because
+% MATLAB structs can't contain hyphens in field names like json props
+function cPackageName = retrieveRepoName(cPackageNameSanitized)
+    fid         = fopen('registered-packages.json', 'r');
+    cText       = fread(fid, inf, 'uint8=>char');
+    fclose(fid);
+    
+    stRegisteredPackages = jsondecode(cText);
+    cPackageName = stRegisteredPackages.(cPackageNameSanitized).repo_name;
+end
+
+
+function [cePackageNames, stPackages] = getPackageListFromJson(cJsonName)
+ % Load package information from package.json
+    fid         = fopen(cJsonName, 'r');
+    cText       = fread(fid, inf, 'uint8=>char');
+    fclose(fid);
+    
+
+    if isempty(cText)
+        % No package json file yet:
+        cePackageNames = {};
+        stPackages = struct;
+        stPackages.dependencies = {};
+    else
+        stPackages  = jsondecode(cText);
+        cePackageNames = stPackages.dependencies;
+    end
+end
+
+function stPackages = installPackage(cPackageName, stPackages)
+    if ~isfield(stPackages, 'dependencies')
+        stPackages.dependencies = {};
+    end
+    ceDependencies = stPackages.dependencies;
+    
+    cRepoName = retrieveRepoName(cPackageName);
+
+
+    % Booleans reflecting existence of package
+    lPackageInJson = any(strcmp(ceDependencies, cPackageName));
+    lPackageInModules = ~isempty(dir(fullfile('mpm-packages', cRepoName)));
+
+    if ~lPackageInModules
+        % then this needs to be cloned:
+        % package does not exist yet
+        fprintf('Installing package %s\n', cPackageName);
+        gitclone(cPackageName);
+    else
+        % package already exists:
+        fprintf('Updating package %s\n', cPackageName);
+        gitpull(cRepoName);
+    end
+
+    % Next check whether this needs to be registered in json:
+    if ~lPackageInJson
+         stPackages.dependencies{end + 1} = cPackageName;
+    end
+    
+    % Check if the installed package has dependencies, and if so,
+    % recursively install
+    if ~isempty(dir(fullfile(cRepoName, 'packages.json')))
+        
+        % Found dependencies in this package:
+        fprintf('Found dependencies in package %s\n', cRepoName)
+        cePackageNames = getPackageListFromJson(fullfile(cRepoName, 'packages.json'));
+        for k = 1:length(cePackageNames)
+            
+            % Install only if this package does not exist in level-one
+            % packages:
+            if ~any(strcmp(ceDependencies, cePackageNames{k}))
+                stPackages = stPackagesinstallPackage(cePackageNames{k}, stPackages);
+            end
+        end
+    end
+
+end
+
+
+
+function gitpull(cPackageName)
+    cCurDir = cd;
+    cd(fullfile('mpm-packages', cPackageName));
+    system('git pull origin master');
+    cd(cCurDir);
+end
+
+function gitclone(cRepoName)
+    % Lookup package in registered packages:
+
+    cPackageURL = getRegisteredPackageURL(cRepoName);
+    cCurDir = cd;
+    cd('mpm-packages');
+    system(sprintf('git clone %s', cPackageURL));
+    cd(cCurDir);
+end
+
+function gitstatus(cRepoName)
+    cCurDir = cd;
+    cd(fullfile('mpm-packages', cRepoName));
+    system('git status');
+    cd(cCurDir);
+end
+
+function cUrl = getRegisteredPackageURL(cPackageName)
+ % Lookup package in registered packages:
+    fid         = fopen('registered-packages.json', 'r');
+    cText       = fread(fid, inf, 'uint8=>char');
+    fclose(fid);
+    stRegisteredPackages = jsondecode(cText);
+    ceFieldNames = fieldnames(stRegisteredPackages);
+    
+    if ~any(strcmp(ceFieldNames, cPackageName))
+        % Then this package was not registered:
+        error('Package %s is not found among packages registered with mpm');
+    else
+        cUrl = stRegisteredPackages.(cPackageName).repo_url;
+    end
+end
+
+function listPackages()
+    fid         = fopen('registered-packages.json', 'r');
+    cText       = fread(fid, inf, 'uint8=>char');
+    fclose(fid);
+    
+    stRegisteredPackages = jsondecode(cText);
+    
+    ceFieldNames = fieldnames(stRegisteredPackages);
+    
+    fprintf('Registered mpm packages:\n---------------------------------\n');
+    
+    for k = 1:length(ceFieldNames)
+         fprintf('%d) %s\n%s\n\n', k, stRegisteredPackages.(ceFieldNames{k}).repo_name, ...
+             stRegisteredPackages.(ceFieldNames{k}).repo_url);
+        
+    end
+    fprintf('\n');
+
+end
+
+function printHelp()
+    fprintf('---------------------------------\nMPM MATLAB package manager v1.0.0\n---------------------------------\n\n');
+    fprintf('USAGE:\n');
+    fprintf('> mpm init\n\tInits mpm to current directory\n\n');
+    fprintf('> mpm list \n\tLists registered and available mpm packages\n\n');
+    fprintf('> mpm install \n\tInstalls/updates packages specified in package.json\n\n');
+    fprintf('> mpm install [package name]\n\tInstalls/updates a specific named package\n\n');
+    fprintf('> mpm status\n\tEchoes status of all mpm package git repos\n\n');
+    fprintf('> mpm register [package name] [repo-url]\n\tRegisters a package to mpm\n\n');
+    fprintf('> mpm addpath [<optional> path to mpm-packages dir]\n\tAdds mpm-packages to path\n\n');
+end

@@ -1,0 +1,18 @@
+{
+	"mgds": {
+		"repo_url": "https://github.com/ryanmiyakawa/mgds.git",
+        "repo_name": "mgds"
+	},
+	"zpgen": {
+		"repo_url": "https://github.com/ryanmiyakawa/zpgen.git",
+        "repo_name": "zpgen"
+	},
+	"ryan_toolbox": {
+		"repo_url": "https://github.com/ryanmiyakawa/ryan_toolbox.git",
+        "repo_name": "ryan_toolbox"
+	},
+	"matlab_instrument_control": {
+		"repo_url": "https://github.com/cnanders/matlab-instrument-control.git",
+        "repo_name": "matlab-instrument-control"
+	}
+}
