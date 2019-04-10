@@ -100,6 +100,23 @@ function mpminit()
         end
         fprintf('MPM initialized in directory %s \n', cd);
     end
+    
+    % Check if .gitignore exists, and if it does, cat mpm-packages to it:
+    if ~isempty(dir('.gitignore'))
+        fid         = fopen('.gitignore', 'r');
+        cText       = (fread(fid, inf, 'uint8=>char'))';
+        fclose(fid);
+        
+        if ~contains(cText, 'mpm-packages')
+            fprintf('Adding "mpm-packages" to .gitignore\n\n');
+            cText = sprintf('%s\n%s', cText, 'mpm-packages');
+            fid         = fopen('.gitignore', 'w');
+            fwrite(fid, cText);
+            fclose(fid);
+        end
+    end
+    
+    fprintf('MPM is initialized!\n');
 end
 
 
