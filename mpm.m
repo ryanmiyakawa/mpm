@@ -71,7 +71,7 @@ function mpm(varargin)
             end
             
             fprintf('Adding %s to MATLAB path\n', cPathVar);
-%             addpath(genpath(cPathVar));
+            addpath(genpath(cPathVar));
             
         otherwise
             
