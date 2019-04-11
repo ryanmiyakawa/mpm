@@ -1,7 +1,7 @@
 function mpm(varargin)
 
 
-    curDir = cd;
+%     curDir = cd;
 
     % Load package information from package.json
     [cePackageNames, stPackages] = getPackageListFromJson('packages.json');
@@ -18,7 +18,7 @@ function mpm(varargin)
     switch direct
         case 'install'
             if ~checkmpmexists()
-                fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize\n');
+                error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
             if length(varargin) == 1
                 % install/update all from packages.json
@@ -39,7 +39,7 @@ function mpm(varargin)
             fclose(fid);
         case 'uninstall'
             if ~checkmpmexists()
-                fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize\n');
+                error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
             if length(varargin) ~= 2
                 error('Must specify package name to uninstall, type "mpm help" for details');
@@ -65,13 +65,13 @@ function mpm(varargin)
             
         case 'update'
             if ~checkmpmexists()
-                fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize\n');
+                error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
             mpmupdate();
 
         case 'status'
             if ~checkmpmexists()
-                fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize\n');
+                fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
             
             listInstalledPackages()
@@ -92,7 +92,7 @@ function mpm(varargin)
             mpmregister(cPackageName, cPackageNameSanitized, cRepoName);
         case 'addpath'
             if ~checkmpmexists()
-                fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize\n');
+                fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
             % adds path of mpm-packages to general path
             if length(varargin) == 2
@@ -105,11 +105,16 @@ function mpm(varargin)
             addpath(genpath(cPathVar));
             
         case 'newversion'
+            cCurDir = cd;
+            [d, ~] = fileparts(mfilename('fullpath'));
+            cd(d);
+ 
+    
             fid         = fopen('version', 'r');
             cVersion    = fread(fid, inf, 'uint8=>char')';
             fclose(fid);
             
-            [~, d2, ~] = regexp(cVersion, 'v(\d+)\.(\d+)\.(\d+)', 'match', 'tokens')
+            [~, d2, ~] = regexp(cVersion, 'v(\d+)\.(\d+)\.(\d+)', 'match', 'tokens');
             
             dVs = d2{1};
             
@@ -119,6 +124,32 @@ function mpm(varargin)
             fid         = fopen('version', 'w');
             fwrite(fid, cVersion);
             fclose(fid);
+            
+            
+            if length(varargin) >= 2
+                
+                fid         = fopen('changelog', 'r');
+                cText    = fread(fid, inf, 'uint8=>char')';
+                fclose(fid);
+                
+                cAddText = '';
+                for k = 2:length(varargin)
+                    cAddText = [cAddText ' ' varargin{k}]; %#ok<AGROW>
+                end
+                if cAddText(1) == '"'
+                    cAddText = cAddText(2:end);
+                end
+                if cAddText(end) == '"'
+                    cAddText = cAddText(1:end-1);
+                end
+                
+                fid         = fopen('changelog', 'w');
+                fwrite(fid, sprintf('%s -%s\n%s', cVersion, cAddText, cText));
+                fclose(fid);
+            end
+               cd(cCurDir);
+            
+            
             
         otherwise
             
@@ -353,9 +384,10 @@ function cUrl = getRegisteredPackageURL(cPackageName)
     end
 end
 
+
 function mpmupdate()
     cCurDir = cd;
-    [d p] = fileparts(mfilename('fullpath'));
+    [d, ~] = fileparts(mfilename('fullpath'));
     cd(d);
     system('git pull origin master');
     cd(cCurDir);

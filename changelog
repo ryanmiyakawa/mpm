@@ -1,3 +1,4 @@
-1.0.2 - added "uninstall"
-1.0.1 - added "status", adding 'mpm-packages' to .gitignore if exists
-1.0.0 - initial commit
+v1.0.3 - adding changelog and versioning
+v1.0.2 - added "uninstall"
+v1.0.1 - added "status", adding 'mpm-packages' to .gitignore if exists
+v1.0.0 - initial commit
