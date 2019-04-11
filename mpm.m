@@ -17,6 +17,9 @@ function mpm(varargin)
 
     switch direct
         case 'install'
+            if ~checkmpmexists()
+                fprintf('Warning: MPM is not initialized in this directory, run "mom init" to initialize\n');
+            end
             if length(varargin) == 1
                 % install/update all from packages.json
                 
@@ -34,6 +37,17 @@ function mpm(varargin)
             fid         = fopen('packages.json', 'w');
             fwrite(fid, jsonencode(stPackages));
             fclose(fid);
+        case 'uninstall'
+            if ~checkmpmexists()
+                fprintf('Warning: MPM is not initialized in this directory, run "mom init" to initialize\n');
+            end
+            cPackageName = regexprep(varargin{2}, '-', '_');
+            stPackages = uninstallPackage(cPackageName, stPackages);
+            
+            % now write packages.json back to file:
+            fid         = fopen('packages.json', 'w');
+            fwrite(fid, jsonencode(stPackages));
+            fclose(fid);
             
         case 'help'
             printHelp();
@@ -46,12 +60,22 @@ function mpm(varargin)
             mpminit();
             
         case 'update'
+            if ~checkmpmexists()
+                fprintf('Warning: MPM is not initialized in this directory, run "mom init" to initialize\n');
+            end
             mpmupdate();
 
         case 'status'
+            if ~checkmpmexists()
+                fprintf('Warning: MPM is not initialized in this directory, run "mom init" to initialize\n');
+            end
+            
+            listInstalledPackages()
+            
+            
             % Loop through packages and run a status on each
             for k = 1:length(cePackageNames)
-                gitstatus(retrieveRepoName(cePackageNames{k}));
+                gitstatus(getRepoName(cePackageNames{k}));
             end
 
         case 'register'
@@ -63,6 +87,9 @@ function mpm(varargin)
             cRepoName = varargin{3};
             mpmregister(cPackageName, cPackageNameSanitized, cRepoName);
         case 'addpath'
+            if ~checkmpmexists()
+                fprintf('Warning: MPM is not initialized in this directory, run "mom init" to initialize\n');
+            end
             % adds path of mpm-packages to general path
             if length(varargin) == 2
                 cPathVar = fullfile(varargin{2}, 'mpm-packages');
@@ -72,6 +99,22 @@ function mpm(varargin)
             
             fprintf('Adding %s to MATLAB path\n', cPathVar);
             addpath(genpath(cPathVar));
+            
+        case 'newversion'
+            fid         = fopen('version', 'r');
+            cVersion    = fread(fid, inf, 'uint8=>char')';
+            fclose(fid);
+            
+            [~, d2, ~] = regexp(cVersion, 'v(\d+)\.(\d+)\.(\d+)', 'match', 'tokens')
+            
+            dVs = d2{1};
+            
+            cVersion = sprintf('v%d.%d.%d',...
+                    str2double(dVs{1}), str2double(dVs{2}), str2double(dVs{3}) + 1);
+            
+            fid         = fopen('version', 'w');
+            fwrite(fid, cVersion);
+            fclose(fid);
             
         otherwise
             
@@ -87,9 +130,14 @@ function mpm(varargin)
 
 end
 
+function lVal = checkmpmexists()
+    lVal =  ~isempty(dir('packages.json')) && ~isempty(dir('mpm-packages'));
+end
+
+
 function mpminit()
 % check if init has happened already:
-    if ~isempty(dir('packages.json')) && ~isempty(dir('mpm-packages'))
+    if checkmpmexists()
         fprintf('MPM already initialized to directory %s \n', cd);
     else
         if isempty(dir('mpm-packages'))
@@ -146,7 +194,7 @@ end
 
 % Retrieves a "proper" package name from sanitized name.  Required because
 % MATLAB structs can't contain hyphens in field names like json props
-function cPackageName = retrieveRepoName(cPackageNameSanitized)
+function cPackageName = getRepoName(cPackageNameSanitized)
     fid         = fopen('registered-packages.json', 'r');
     cText       = fread(fid, inf, 'uint8=>char');
     fclose(fid);
@@ -180,7 +228,7 @@ function stPackages = installPackage(cPackageName, stPackages)
     end
     ceDependencies = stPackages.dependencies;
     
-    cRepoName = retrieveRepoName(cPackageName);
+    cRepoName = getRepoName(cPackageName);
 
 
     % Booleans reflecting existence of package
@@ -222,6 +270,37 @@ function stPackages = installPackage(cPackageName, stPackages)
 
 end
 
+function stPackages = uninstallPackage(cPackageName, stPackages)
+    if ~isfield(stPackages, 'dependencies')
+        stPackages.dependencies = {};
+    end
+    ceDependencies = stPackages.dependencies;
+    cRepoName = getRepoName(cPackageName);
+    
+    lPackageInJson = any(strcmp(ceDependencies, cPackageName));
+    lPackageInModules = ~isempty(dir(fullfile('mpm-packages', cRepoName)));
+    
+    if ~lPackageInJson && ~lPackageInModules
+        fprintf('Package %s not found!\n\n', cRepoName);
+        return
+    end
+    
+    % Removing from mpm-pacakges
+    if lPackageInModules
+        fprintf('Removing mpm-package %s\n', cRepoName);
+        cDir = cd;
+        cd('mpm-packages')
+        rmdir( cRepoName, 's');
+        cd(cDir);
+    end
+    
+    % Remove from package.json
+    if lPackageInJson
+        stPackages.dependencies(strcmp( stPackages.dependencies, cPackageName)) = [];
+    end
+    
+    fprintf('Package %s successfully uninstalled!\n\n', cRepoName);
+end
 
 
 function gitpull(cPackageName)
@@ -229,6 +308,9 @@ function gitpull(cPackageName)
     cd(fullfile('mpm-packages', cPackageName));
     system('git pull origin master');
     cd(cCurDir);
+    
+    fprintf('Package %s successfully updated!\n', cPackageName);
+    
 end
 
 function gitclone(cRepoName)
@@ -239,6 +321,9 @@ function gitclone(cRepoName)
     cd('mpm-packages');
     system(sprintf('git clone %s', cPackageURL));
     cd(cCurDir);
+    
+    fprintf('Package %s successfully downloaded!\n', cRepoName);
+
 end
 
 function gitstatus(cRepoName)
@@ -274,6 +359,7 @@ end
 
 function listPackages()
     fid         = fopen('registered-packages.json', 'r');
+    
     cText       = fread(fid, inf, 'uint8=>char');
     fclose(fid);
     
@@ -291,6 +377,33 @@ function listPackages()
     fprintf('\n');
 
 end
+
+function listInstalledPackages()
+    fid         = fopen('packages.json', 'r');
+    if fid == -1
+        fprintf('Warning: MPM not found in this directory\n');
+        return
+    end
+    cText       = fread(fid, inf, 'uint8=>char');
+    fclose(fid);
+
+    stPackages = jsondecode(cText);
+
+    ceFieldNames = stPackages.dependencies;
+
+    fprintf('Installed mpm packages:\n---------------------------------\n');
+
+    dPackages = 0;
+    for k = 1:length(ceFieldNames)
+        cRepoName = getRepoName(ceFieldNames{k});
+        if ~isempty(dir(sprintf('mpm-packages/%s', cRepoName)))
+            dPackages = dPackages + 1;
+            fprintf('  %d) %s\n', dPackages, cRepoName);
+        end
+    end
+    fprintf('\n');
+end
+
 
 function printHelp()
     fid         = fopen('version', 'r');
