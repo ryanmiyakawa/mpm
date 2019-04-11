@@ -18,7 +18,7 @@ function mpm(varargin)
     switch direct
         case 'install'
             if ~checkmpmexists()
-                fprintf('Warning: MPM is not initialized in this directory, run "mom init" to initialize\n');
+                fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize\n');
             end
             if length(varargin) == 1
                 % install/update all from packages.json
@@ -39,8 +39,12 @@ function mpm(varargin)
             fclose(fid);
         case 'uninstall'
             if ~checkmpmexists()
-                fprintf('Warning: MPM is not initialized in this directory, run "mom init" to initialize\n');
+                fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize\n');
             end
+            if length(varargin) ~= 2
+                error('Must specify package name to uninstall, type "mpm help" for details');
+            end
+            
             cPackageName = regexprep(varargin{2}, '-', '_');
             stPackages = uninstallPackage(cPackageName, stPackages);
             
@@ -61,13 +65,13 @@ function mpm(varargin)
             
         case 'update'
             if ~checkmpmexists()
-                fprintf('Warning: MPM is not initialized in this directory, run "mom init" to initialize\n');
+                fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize\n');
             end
             mpmupdate();
 
         case 'status'
             if ~checkmpmexists()
-                fprintf('Warning: MPM is not initialized in this directory, run "mom init" to initialize\n');
+                fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize\n');
             end
             
             listInstalledPackages()
@@ -88,7 +92,7 @@ function mpm(varargin)
             mpmregister(cPackageName, cPackageNameSanitized, cRepoName);
         case 'addpath'
             if ~checkmpmexists()
-                fprintf('Warning: MPM is not initialized in this directory, run "mom init" to initialize\n');
+                fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize\n');
             end
             % adds path of mpm-packages to general path
             if length(varargin) == 2
@@ -416,6 +420,7 @@ function printHelp()
     fprintf('> mpm list \n\tLists registered and available mpm packages\n\n');
     fprintf('> mpm install \n\tInstalls/updates packages specified in package.json\n\n');
     fprintf('> mpm install [package name]\n\tInstalls/updates a specific named package\n\n');
+    fprintf('> mpm uninstall [package name]\n\tRemoves named package from project\n\n');
     fprintf('> mpm status\n\tEchoes status of all mpm package git repos\n\n');
     fprintf('> mpm register [package name] [repo-url]\n\tRegisters a package to mpm\n\n');
     fprintf('> mpm update\n\tPulls latest version of mpm\n\n');
