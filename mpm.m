@@ -84,11 +84,15 @@ function mpm(varargin)
 
         case 'register'
             if length(varargin) ~= 3
-                error('Required format: mpm register [package name] [package git repo url]');
+                error('Required format: mpm register [package name] [package git repo url or github url]');
             end
             cPackageName = varargin{2};
             cPackageNameSanitized = regexprep(varargin{2}, '-', '_');
-            cRepoName = varargin{3};
+            [p, d, e] = fileparts(varargin{3});
+            if isempty(e)
+                e = '.git';
+            end
+            cRepoName = fullfile(p,[d,e]);
             mpmregister(cPackageName, cPackageNameSanitized, cRepoName);
         case 'addpath'
             if ~checkmpmexists()

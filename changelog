@@ -1,3 +1,4 @@
+v1.0.6 - Allowing extension .git to be optionally dropped when registering a package
 v1.0.5 - "echoing changelog on newversion
 v1.0.4 - "register package now properly registers in mpm directory
 v1.0.3 - adding changelog and versioning
