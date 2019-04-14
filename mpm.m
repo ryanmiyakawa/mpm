@@ -144,8 +144,11 @@ function mpm(varargin)
                 end
                 
                 fid         = fopen('changelog', 'w');
-                fwrite(fid, sprintf('%s -%s\n%s', cVersion, cAddText, cText));
+                cNewChangelogText = sprintf('%s -%s\n%s', cVersion, cAddText, cText);
+                fwrite(fid, cNewChangelogText);
                 fclose(fid);
+                
+                fprintf('Added new version %s\n\n CHANGELOG: \n%s\n\n', cVersion, cNewChangelogText);
             end
                cd(cCurDir);
             
@@ -207,6 +210,11 @@ end
 
 % Registers a package with mpm
 function mpmregister(cPackageName, cPackageNameSanitized, cRepoURL)
+
+    cCurDir = cd;   
+    [d, ~] = fileparts(mfilename('fullpath'));
+    cd(d);    
+    
     fid         = fopen('registered-packages.json', 'r');
     cText       = fread(fid, inf, 'uint8=>char');
     fclose(fid);
@@ -225,6 +233,8 @@ function mpmregister(cPackageName, cPackageNameSanitized, cRepoURL)
         fwrite(fid, jsonencode(stRegisteredPackages));
         fclose(fid);
     end
+    cd(cCurDir);
+
 end
 
 % Retrieves a "proper" package name from sanitized name.  Required because
@@ -427,6 +437,10 @@ function listInstalledPackages()
 
     ceFieldNames = stPackages.dependencies;
 
+    if isempty(ceFieldNames)
+        fprintf('No installed mpm packages\n');
+        return
+    end
     fprintf('Installed mpm packages:\n---------------------------------\n');
 
     dPackages = 0;
@@ -451,7 +465,7 @@ function printHelp()
     fprintf('> mpm init\n\tInits mpm to current directory\n\n');
     fprintf('> mpm list \n\tLists registered and available mpm packages\n\n');
     fprintf('> mpm install \n\tInstalls/updates packages specified in package.json\n\n');
-    fprintf('> mpm install [package name]\n\tInstalls/updates a specific named package\n\n');
+    fprintf('> mpm install [package name]\n\tInstalls/updates a specific named package from mpm registered packages\n\n');
     fprintf('> mpm uninstall [package name]\n\tRemoves named package from project\n\n');
     fprintf('> mpm status\n\tEchoes status of all mpm package git repos\n\n');
     fprintf('> mpm register [package name] [repo-url]\n\tRegisters a package to mpm\n\n');
