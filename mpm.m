@@ -15,6 +15,10 @@ function mpm(varargin)
 
 %     try
 
+    if direct(1) == '-'
+        direct = direct(2:end);
+    end
+
     switch direct
         case 'install'
             if ~checkmpmexists()
@@ -108,7 +112,20 @@ function mpm(varargin)
             fprintf('Adding %s to MATLAB path\n', cPathVar);
             addpath(genpath(cPathVar));
             
-        case 'newversion'
+        case {'ver', 'version'}
+            
+            fid         = fopen('changelog', 'r');
+            cChangelog    = fread(fid, inf, 'uint8=>char')';
+            fclose(fid);
+            
+            fid         = fopen('version', 'r');
+            cVersion       = fread(fid, inf, 'uint8=>char');
+            fclose(fid);
+            
+            fprintf('---------------------------------\nMPM MATLAB package manager %s\n---------------------------------\n\n', cVersion);
+            fprintf('Version history:\n----------------\n%s\n\n', cChangelog);
+                
+        case {'newversion', 'new-version'}
             cCurDir = cd;
             [d, ~] = fileparts(mfilename('fullpath'));
             cd(d);
@@ -159,6 +176,7 @@ function mpm(varargin)
             
             
         otherwise
+            
             
             error('Unknown directive "%s", run "mpm help" to see valid usage', direct);
             
@@ -471,8 +489,9 @@ function printHelp()
     fprintf('> mpm install \n\tInstalls/updates packages specified in package.json\n\n');
     fprintf('> mpm install [package name]\n\tInstalls/updates a specific named package from mpm registered packages\n\n');
     fprintf('> mpm uninstall [package name]\n\tRemoves named package from project\n\n');
-    fprintf('> mpm status\n\tEchoes status of all mpm package git repos\n\n');
-    fprintf('> mpm register [package name] [repo-url]\n\tRegisters a package to mpm\n\n');
+    fprintf('> mpm status\n\tEchoes installed packages and git status of all mpm package git repos\n\n');
+    fprintf('> mpm register [package name] [repo-url or github url]\n\tRegisters a package to mpm\n\n');
+    fprintf('> mpm version\n\tEchoes mpm version and changelog\n\n');
     fprintf('> mpm update\n\tPulls latest version of mpm\n\n');
     fprintf('> mpm addpath [<optional> path to mpm-packages dir]\n\tAdds mpm-packages to path\n\n');
 end
