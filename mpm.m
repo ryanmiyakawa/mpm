@@ -71,13 +71,17 @@ function mpm(varargin)
             if ~checkmpmexists()
                 error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
+             printVersion();
             mpmupdate();
 
         case 'status'
+            
+             
             if ~checkmpmexists()
-                fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
+                error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
             
+            printVersion();
             listInstalledPackages()
             
             
@@ -118,11 +122,7 @@ function mpm(varargin)
             cChangelog    = fread(fid, inf, 'uint8=>char')';
             fclose(fid);
             
-            fid         = fopen('version', 'r');
-            cVersion       = fread(fid, inf, 'uint8=>char');
-            fclose(fid);
-            
-            fprintf('---------------------------------\nMPM MATLAB package manager %s\n---------------------------------\n\n', cVersion);
+            printVersion();
             fprintf('Version history:\n----------------\n%s\n\n', cChangelog);
                 
         case {'newversion', 'new-version'}
@@ -196,6 +196,7 @@ end
 
 
 function mpminit()
+printVersion();
 % check if init has happened already:
     if checkmpmexists()
         fprintf('MPM already initialized to directory %s \n', cd);
@@ -249,6 +250,8 @@ function mpmregister(cPackageName, cPackageNameSanitized, cRepoURL)
     else
         fprintf('Registering package %s with mpm with url: %s\n\n', cRepoURL);
         stRegisteredPackages.(cPackageNameSanitized).repo_url = cRepoURL;
+        
+        [~,cPackageName,~] = fileparts(cRepoURL);
         stRegisteredPackages.(cPackageNameSanitized).repo_name = cPackageName;
         
         fid         = fopen('registered-packages.json', 'w');
@@ -320,17 +323,17 @@ function stPackages = installPackage(cPackageName, stPackages)
     
     % Check if the installed package has dependencies, and if so,
     % recursively install
-    if ~isempty(dir(fullfile(cRepoName, 'packages.json')))
+    if ~isempty(dir(fullfile('mpm-packages', cRepoName, 'packages.json')))
         
         % Found dependencies in this package:
         fprintf('Found dependencies in package %s\n', cRepoName)
-        cePackageNames = getPackageListFromJson(fullfile(cRepoName, 'packages.json'));
+        cePackageNames = getPackageListFromJson(fullfile('mpm-packages',cRepoName, 'packages.json'));
         for k = 1:length(cePackageNames)
             
             % Install only if this package does not exist in level-one
             % packages:
             if ~any(strcmp(ceDependencies, cePackageNames{k}))
-                stPackages = stPackagesinstallPackage(cePackageNames{k}, stPackages);
+                stPackages = installPackage(cePackageNames{k}, stPackages);
             end
         end
     end
@@ -476,13 +479,16 @@ function listInstalledPackages()
     fprintf('\n');
 end
 
-
-function printHelp()
+function printVersion()
     fid         = fopen('version', 'r');
     cVersion       = fread(fid, inf, 'uint8=>char');
     fclose(fid);
-    
     fprintf('---------------------------------\nMPM MATLAB package manager %s\n---------------------------------\n\n', cVersion);
+end
+
+function printHelp()
+ 
+    printVersion();
     fprintf('USAGE:\n');
     fprintf('> mpm init\n\tInits mpm to current directory\n\n');
     fprintf('> mpm list \n\tLists registered and available mpm packages\n\n');
