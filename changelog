@@ -1,3 +1,4 @@
+v1.0.8 - adding infinite recursion check for nested dependencies
 v1.0.7 - Fixed problem with recursively installing uninstalled dependencies
 v1.0.6 - Allowing extension .git to be optionally dropped when registering a package
 v1.0.5 - "echoing changelog on newversion

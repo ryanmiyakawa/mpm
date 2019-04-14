@@ -34,7 +34,8 @@ function mpm(varargin)
             else
                 % Just install specific packages
                 cPackageName = regexprep(varargin{2}, '-', '_');
-                stPackages = installPackage(cPackageName, stPackages);
+                dDepth = 0;
+                stPackages = installPackage(cPackageName, stPackages, dDepth);
             end
             
             % now write packages.json back to file:
@@ -292,7 +293,7 @@ function [cePackageNames, stPackages] = getPackageListFromJson(cJsonName)
     end
 end
 
-function stPackages = installPackage(cPackageName, stPackages)
+function stPackages = installPackage(cPackageName, stPackages, dDepth)
     if ~isfield(stPackages, 'dependencies')
         stPackages.dependencies = {};
     end
@@ -330,10 +331,14 @@ function stPackages = installPackage(cPackageName, stPackages)
         cePackageNames = getPackageListFromJson(fullfile('mpm-packages',cRepoName, 'packages.json'));
         for k = 1:length(cePackageNames)
             
+            if (dDepth > 15)
+                error('Infinite recursion detected... terminating');
+            end
+            
             % Install only if this package does not exist in level-one
             % packages:
             if ~any(strcmp(ceDependencies, cePackageNames{k}))
-                stPackages = installPackage(cePackageNames{k}, stPackages);
+                stPackages = installPackage(cePackageNames{k}, stPackages, dDepth + 1);
             end
         end
     end
