@@ -1,3 +1,5 @@
+v1.0.10 - adding push capability
+v1.0.9 - adding shortcut keys for install (i) uninstall (u) list (l) help (h) version (v) addpath (a)
 v1.0.8 - adding infinite recursion check for nested dependencies
 v1.0.7 - Fixed problem with recursively installing uninstalled dependencies
 v1.0.6 - Allowing extension .git to be optionally dropped when registering a package

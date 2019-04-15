@@ -20,7 +20,7 @@ function mpm(varargin)
     end
 
     switch direct
-        case 'install'
+        case {'install', 'i'}
             if ~checkmpmexists()
                 error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
@@ -42,7 +42,7 @@ function mpm(varargin)
             fid         = fopen('packages.json', 'w');
             fwrite(fid, jsonencode(stPackages));
             fclose(fid);
-        case 'uninstall'
+        case {'uninstall', 'u'}
             if ~checkmpmexists()
                 error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
@@ -58,17 +58,37 @@ function mpm(varargin)
             fwrite(fid, jsonencode(stPackages));
             fclose(fid);
             
-        case 'help'
+        case {'help', 'h'}
             printHelp();
-        case 'list'
+        case {'list', 'l'}
             listPackages();
             
         case 'push'
             
+            if length(varargin) < 2
+                fprintf('Please add commit message before pushing\n\n');
+                return
+            end
+            cCurDir = cd;
+            [d, ~] = fileparts(mfilename('fullpath'));
+            cd(d);
+            
+            
+            cAddText = '';
+            for k = 2:length(varargin)
+                cAddText = [cAddText ' ' varargin{k}]; %#ok<AGROW>
+            end
+            
+            system('git add .');
+            system(sprintf('git commit -m "%s"', cAddText));
+            system('git push origin master');
+            
+            cd (cCurDir);
+            
         case 'init'
             mpminit();
             
-        case 'update'
+        case {'update'}
             if ~checkmpmexists()
                 error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
@@ -77,7 +97,7 @@ function mpm(varargin)
 
         case 'status'
             
-             
+            
             if ~checkmpmexists()
                 error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
@@ -91,7 +111,7 @@ function mpm(varargin)
                 gitstatus(getRepoName(cePackageNames{k}));
             end
 
-        case 'register'
+        case {'register', 'r'}
             if length(varargin) ~= 3
                 error('Required format: mpm register [package name] [package git repo url or github url]');
             end
@@ -103,7 +123,7 @@ function mpm(varargin)
             end
             cRepoName = fullfile(p,[d,e]);
             mpmregister(cPackageName, cPackageNameSanitized, cRepoName);
-        case 'addpath'
+        case {'addpath', 'a'}
             if ~checkmpmexists()
                 fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
@@ -117,7 +137,7 @@ function mpm(varargin)
             fprintf('Adding %s to MATLAB path\n', cPathVar);
             addpath(genpath(cPathVar));
             
-        case {'ver', 'version'}
+        case {'ver', 'version', 'v'}
             
             fid         = fopen('changelog', 'r');
             cChangelog    = fread(fid, inf, 'uint8=>char')';
@@ -126,7 +146,7 @@ function mpm(varargin)
             printVersion();
             fprintf('Version history:\n----------------\n%s\n\n', cChangelog);
                 
-        case {'newversion', 'new-version'}
+        case {'newversion', 'new-version', 'n'}
             cCurDir = cd;
             [d, ~] = fileparts(mfilename('fullpath'));
             cd(d);
