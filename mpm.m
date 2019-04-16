@@ -24,17 +24,18 @@ function mpm(varargin)
             if ~checkmpmexists()
                 error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
+            dDepth = 0;
+
             if length(varargin) == 1
                 % install/update all from packages.json
                 
                 for k = 1:length(cePackageNames)
-                    stPackages = installPackage(cePackageNames{k}, stPackages);
+                    stPackages = installPackage(cePackageNames{k}, stPackages, dDepth);
                 end
 
             else
                 % Just install specific packages
                 cPackageName = regexprep(varargin{2}, '-', '_');
-                dDepth = 0;
                 stPackages = installPackage(cPackageName, stPackages, dDepth);
             end
             

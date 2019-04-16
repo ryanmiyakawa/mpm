@@ -1,3 +1,4 @@
+v1.0.11 - fixed recursion check
 v1.0.10 - adding push capability
 v1.0.9 - adding shortcut keys for install (i) uninstall (u) list (l) help (h) version (v) addpath (a)
 v1.0.8 - adding infinite recursion check for nested dependencies
