@@ -109,6 +109,7 @@ function mpm(varargin)
             
             % Loop through packages and run a status on each
             for k = 1:length(cePackageNames)
+                fprintf('\n---------------------------------------\nStatus of package: %s\n---------------------------------------\n', getRepoName(cePackageNames{k}));
                 gitstatus(getRepoName(cePackageNames{k}));
             end
 
@@ -145,7 +146,10 @@ function mpm(varargin)
             fclose(fid);
             
             printVersion();
-            fprintf('Version history:\n----------------\n%s\n\n', cChangelog);
+            
+            if length(varargin) == 1 || ~strcmp(varargin{2}, 'nochangelog')
+                fprintf('Version history:\n----------------\n%s\n\n', cChangelog);
+            end
                 
         case {'newversion', 'new-version', 'n'}
             cCurDir = cd;
@@ -213,7 +217,15 @@ function mpm(varargin)
 end
 
 function lVal = checkmpmexists()
-    lVal =  ~isempty(dir('packages.json')) && ~isempty(dir('mpm-packages'));
+    lVal =  checkpackagsjsonexists() && checkmpmpackagesexists();
+end
+
+function lVal = checkpackagsjsonexists()
+    lVal =  ~isempty(dir('packages.json'));
+end
+
+function lVal = checkmpmpackagesexists()
+    lVal =   ~isempty(dir('mpm-packages'));
 end
 
 
@@ -222,17 +234,18 @@ printVersion();
 % check if init has happened already:
     if checkmpmexists()
         fprintf('MPM already initialized to directory %s \n', cd);
-    else
-        if isempty(dir('mpm-packages'))
-            mkdir('mpm-packages');
-        end
-        
-        if isempty(dir('packages.json'))
-            fid = fopen('packages.json', 'w');
-            fclose(fid);
-        end
-        fprintf('MPM initialized in directory %s \n', cd);
     end
+    
+    
+    if isempty(dir('mpm-packages'))
+        mkdir('mpm-packages');
+    end
+
+    if isempty(dir('packages.json'))
+        fid = fopen('packages.json', 'w');
+        fclose(fid);
+    end
+    fprintf('MPM initialized in directory %s \n', cd);
     
     % Check if .gitignore exists, and if it does, cat mpm-packages to it:
     if ~isempty(dir('.gitignore'))
@@ -425,7 +438,12 @@ end
 function gitstatus(cRepoName)
     cCurDir = cd;
     cd(fullfile('mpm-packages', cRepoName));
-    system('git status');
+    [st, cm] = system('git status');
+    if (contains(cm, 'nothing to commit, working tree clean'))
+        fprintf('Working tree clean\n');
+    else
+        fprintf('>> Edits have been made to package "%s", git response:\n\n%s', cRepoName, cm);
+    end
     cd(cCurDir);
 end
 
@@ -509,7 +527,7 @@ function printVersion()
     fid         = fopen('version', 'r');
     cVersion       = fread(fid, inf, 'uint8=>char');
     fclose(fid);
-    fprintf('---------------------------------\nMPM MATLAB package manager %s\n---------------------------------\n\n', cVersion);
+    fprintf('----------------------------------\nMPM MATLAB package manager %s\n----------------------------------\n\n', cVersion);
 end
 
 function printHelp()
