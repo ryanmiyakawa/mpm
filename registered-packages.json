@@ -86,5 +86,9 @@
 	"LSI_analyze":{
 		"repo_url":"https://github.com/ryanmiyakawa/LSI-analyze.git",
 		"repo_name":"LSI-analyze"
+	},
+	"matlab_datatranslation_measurpoint":{
+		"repo_url":"https://github.com/awojdyla/matlab-datatranslation-measurpoint.git",
+		"repo_name":"matlab-datatranslation-measurpoint"
 	}
 }
