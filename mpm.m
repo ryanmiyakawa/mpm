@@ -80,6 +80,13 @@ function mpm(varargin)
                 cAddText = [cAddText ' ' varargin{k}]; %#ok<AGROW>
             end
             
+            if ~isempty(cAddText) && (cAddText(2) == '''' || cAddText(2) == '"')
+                cAddText = cAddText(3:end);
+            end
+            if ~isempty(cAddText) && (cAddText(end) == '''' || cAddText(end) == '"')
+                cAddText = cAddText(1:end-1);
+            end
+            
             system('git add .');
             system(sprintf('git commit -m "%s"', cAddText));
             system('git push origin master');
@@ -124,6 +131,7 @@ function mpm(varargin)
                 e = '.git';
             end
             cRepoName = fullfile(p,[d,e]);
+            cRepoName = regexprep(cRepoName, '\\', '/');
             mpmregister(cPackageName, cPackageNameSanitized, cRepoName);
         case {'addpath', 'a'}
             if ~checkmpmexists()
