@@ -1,3 +1,19 @@
+%% mpm (MATLAB PACKAGE MANAGER)
+%{
+
+CXRO Matlab package manager, 04.01.2019, R. Miyakawa and C. Anderson
+
+Package manager that uses a git backend to install and update Matlab
+dependencies.  Install mpm by downloading cloning this git repo: 
+
+    https://github.com/ryanmiyakawa/mpm.git
+
+or by running the script MPMSetup.m.  MPM requires git to be installed on
+the command line to work properly.  
+
+%}
+
+
 function mpm(varargin)
 
 
@@ -111,7 +127,7 @@ function mpm(varargin)
             end
             
             printVersion();
-            listInstalledPackages()
+            listInstalledPackages();
             
             
             % Loop through packages and run a status on each
@@ -137,6 +153,8 @@ function mpm(varargin)
             if ~checkmpmexists()
                 fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
+            
+            
             % adds path of mpm-packages to general path
             if length(varargin) == 2
                 cPathVar = fullfile(varargin{2}, 'mpm-packages');
@@ -144,8 +162,9 @@ function mpm(varargin)
                 cPathVar = 'mpm-packages';
             end
             
-            fprintf('Adding %s to MATLAB path\n', cPathVar);
-            addpath(genpath(cPathVar));
+            mpmAddPath(cPathVar)
+            
+            
             
         case {'ver', 'version', 'v'}
             
@@ -234,6 +253,32 @@ end
 
 function lVal = checkmpmpackagesexists()
     lVal =   ~isempty(dir('mpm-packages'));
+end
+
+function mpmAddPath(cMpmDir)
+
+    cePackages = getInstalledPackages();
+
+    cCurDir = cd;
+    cd (cMpmDir);
+
+
+    for k = 1:length(cePackages)
+        % For each package, check if package.json has a path, otherwise add src
+        % folder
+        if ~isempty(dir(fullfile(cePackages{k}, 'src')))
+            cPathVar = fullfile(cePackages{k}, 'src');
+            addpath(genpath(cPathVar));
+        else
+            cPathVar = cePackages{k};
+            addpath(genpath(cPathVar));
+        end
+        fprintf('Adding %s to MATLAB path\n', cPathVar);
+
+    end
+
+
+    cd (cCurDir);
 end
 
 
@@ -507,6 +552,26 @@ function listPackages()
 end
 
 function listInstalledPackages()
+    ceInstalledPackages = getInstalledPackages();
+    
+    if isempty(ceInstalledPackages)
+        fprintf('No installed mpm packages\n');
+        return
+    end
+    fprintf('Installed mpm packages:\n---------------------------------\n');
+
+    dPackages = 0;
+    for k = 1:length(ceInstalledPackages)
+        cRepoName = ceInstalledPackages{k};
+        if ~isempty(dir(sprintf('mpm-packages/%s', cRepoName)))
+            dPackages = dPackages + 1;
+            fprintf('  %d) %s\n', dPackages, cRepoName);
+        end
+    end
+    fprintf('\n');
+end
+
+function ceInstalledPackages = getInstalledPackages()
     fid         = fopen('packages.json', 'r');
     if fid == -1
         fprintf('Warning: MPM not found in this directory\n');
@@ -518,22 +583,17 @@ function listInstalledPackages()
     stPackages = jsondecode(cText);
 
     ceFieldNames = stPackages.dependencies;
-
-    if isempty(ceFieldNames)
-        fprintf('No installed mpm packages\n');
-        return
-    end
-    fprintf('Installed mpm packages:\n---------------------------------\n');
-
+    ceInstalledPackages = {};
+    
     dPackages = 0;
     for k = 1:length(ceFieldNames)
         cRepoName = getRepoName(ceFieldNames{k});
         if ~isempty(dir(sprintf('mpm-packages/%s', cRepoName)))
             dPackages = dPackages + 1;
-            fprintf('  %d) %s\n', dPackages, cRepoName);
+            ceInstalledPackages{dPackages} = cRepoName; %#ok<AGROW>
         end
     end
-    fprintf('\n');
+
 end
 
 function printVersion()
@@ -549,16 +609,23 @@ function printHelp()
     fprintf('USAGE:\n');
     fprintf('> mpm init\n\tInits mpm to current directory\n\n');
     fprintf('> mpm list \n\tLists registered and available mpm packages\n\n');
+    fprintf('> mpm addpath [<optional> path to mpm-packages dir]\n\tAdds mpm-packages to path\n\n');
     fprintf('> mpm install \n\tInstalls/updates packages specified in package.json\n\n');
     fprintf('> mpm install [package name]\n\tInstalls/updates a specific named package from mpm registered packages\n\n');
     fprintf('> mpm uninstall [package name]\n\tRemoves named package from project\n\n');
     fprintf('> mpm status\n\tEchoes installed packages and git status of all mpm package git repos\n\n');
-    fprintf('> mpm register [package name] [repo-url or github url]\n\tRegisters a package to mpm\n\n');
+    
     fprintf('> mpm version\n\tEchoes mpm version and changelog\n\n');
     fprintf('> mpm update\n\tPulls latest version of mpm\n\n');
-    fprintf('> mpm addpath [<optional> path to mpm-packages dir]\n\tAdds mpm-packages to path\n\n');
+    
+    fprintf('=========================================================================\n');
+    fprintf('=== Advanced use: Probably don''t do this unless you are Chris or Ryan ===\n');
+    fprintf('> mpm register [package name] [repo-url or github url]\n\tRegisters a package to mpm\n');
+    fprintf('> mpm push [commit message]\n\tCommits and pushes changes to the MPM repo\n');
+    fprintf('=========================================================================\n');
 end
 
+% A simple pretty print json algorithm
 function strOut = jsonPretty(str)
     str = jsonencode(str);
     ct = 1;
@@ -577,6 +644,13 @@ function strOut = jsonPretty(str)
             case '}'
                 lftCt = lftCt - 1;
                 strOut = sprintf('%s\n%s}',strOut, makeTabs(lftCt));
+            case '['
+                lftCt = lftCt + 1;
+                strOut = sprintf('%s[\n%s',strOut, makeTabs(lftCt));
+                
+            case ']'
+                lftCt = lftCt - 1;
+                strOut = sprintf('%s\n%s]',strOut, makeTabs(lftCt));
                 
             otherwise
                 strOut(end+1) = ch;
