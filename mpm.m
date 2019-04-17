@@ -41,7 +41,7 @@ function mpm(varargin)
             
             % now write packages.json back to file:
             fid         = fopen('packages.json', 'w');
-            fwrite(fid, jsonencode(stPackages));
+            fwrite(fid, jsonPretty(stPackages));
             fclose(fid);
         case {'uninstall', 'u'}
             if ~checkmpmexists()
@@ -56,7 +56,7 @@ function mpm(varargin)
             
             % now write packages.json back to file:
             fid         = fopen('packages.json', 'w');
-            fwrite(fid, jsonencode(stPackages));
+            fwrite(fid, jsonPretty(stPackages));
             fclose(fid);
             
         case {'help', 'h'}
@@ -78,6 +78,13 @@ function mpm(varargin)
             cAddText = '';
             for k = 2:length(varargin)
                 cAddText = [cAddText ' ' varargin{k}]; %#ok<AGROW>
+            end
+            
+            if ~isempty(cAddText) && (cAddText(2) == '''' || cAddText(2) == '"')
+                cAddText = cAddText(3:end);
+            end
+            if ~isempty(cAddText) && (cAddText(end) == '''' || cAddText(end) == '"')
+                cAddText = cAddText(1:end-1);
             end
             
             system('git add .');
@@ -124,6 +131,7 @@ function mpm(varargin)
                 e = '.git';
             end
             cRepoName = fullfile(p,[d,e]);
+            cRepoName = regexprep(cRepoName, '\\', '/');
             mpmregister(cPackageName, cPackageNameSanitized, cRepoName);
         case {'addpath', 'a'}
             if ~checkmpmexists()
@@ -183,10 +191,10 @@ function mpm(varargin)
                 for k = 2:length(varargin)
                     cAddText = [cAddText ' ' varargin{k}]; %#ok<AGROW>
                 end
-                if cAddText(1) == '"'
-                    cAddText = cAddText(2:end);
+                if cAddText(2) == '"' || cAddText(2) == ''''
+                    cAddText = [' ', cAddText(3:end)];
                 end
-                if cAddText(end) == '"'
+                if cAddText(end) == '"' || cAddText(end) == ''''
                     cAddText = cAddText(1:end-1);
                 end
                 
@@ -280,19 +288,24 @@ function mpmregister(cPackageName, cPackageNameSanitized, cRepoURL)
     stRegisteredPackages = jsondecode(cText);
     ceFieldNames = fieldnames(stRegisteredPackages);
     
+    cResponse = 'y';
     if any(strcmp(ceFieldNames, cPackageNameSanitized))
-        fprintf('Package %s already registered with mpm\n', cPackageName);
-    else
-        fprintf('Registering package %s with mpm with url: %s\n\n', cRepoURL);
-        stRegisteredPackages.(cPackageNameSanitized).repo_url = cRepoURL;
         
+        cResponse = input(sprintf('WARNING: Package "%s" already registered with mpm, OVERWRITE? (y/n)\n',cPackageName) ,'s');
+    end
+    
+    if cResponse == 'y' || cResponse == 'Y'
+        fprintf('\nRegistering package "%s" with mpm with url: %s\n\n', cPackageName, cRepoURL);
+        stRegisteredPackages.(cPackageNameSanitized).repo_url = cRepoURL;
+
         [~,cPackageName,~] = fileparts(cRepoURL);
         stRegisteredPackages.(cPackageNameSanitized).repo_name = cPackageName;
-        
+
         fid         = fopen('registered-packages.json', 'w');
-        fwrite(fid, jsonencode(stRegisteredPackages));
+        fwrite(fid, jsonPretty(stRegisteredPackages));
         fclose(fid);
     end
+    
     cd(cCurDir);
 
 end
@@ -545,3 +558,37 @@ function printHelp()
     fprintf('> mpm update\n\tPulls latest version of mpm\n\n');
     fprintf('> mpm addpath [<optional> path to mpm-packages dir]\n\tAdds mpm-packages to path\n\n');
 end
+
+function strOut = jsonPretty(str)
+    str = jsonencode(str);
+    ct = 1;
+    strOut = '';
+    lftCt = 0;
+    while ct <= length(str)
+        ch = str(ct);
+        switch ch
+            case ','
+                strOut = sprintf('%s,\n%s',strOut, makeTabs(lftCt));
+                
+            case '{'
+                lftCt = lftCt + 1;
+                strOut = sprintf('%s{\n%s',strOut, makeTabs(lftCt));
+                
+            case '}'
+                lftCt = lftCt - 1;
+                strOut = sprintf('%s\n%s}',strOut, makeTabs(lftCt));
+                
+            otherwise
+                strOut(end+1) = ch;
+        end
+        ct = ct + 1;
+    end
+end
+
+function cTabs = makeTabs(ct)
+    cTabs = '';
+    for k = 1:ct
+        cTabs = sprintf('%s\t', cTabs);
+    end
+end
+
