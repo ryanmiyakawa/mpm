@@ -191,10 +191,10 @@ function mpm(varargin)
                 for k = 2:length(varargin)
                     cAddText = [cAddText ' ' varargin{k}]; %#ok<AGROW>
                 end
-                if cAddText(1) == '"'
-                    cAddText = cAddText(2:end);
+                if cAddText(2) == '"' || cAddText(2) == ''''
+                    cAddText = [' ', cAddText(3:end)];
                 end
-                if cAddText(end) == '"'
+                if cAddText(end) == '"' || cAddText(end) == ''''
                     cAddText = cAddText(1:end-1);
                 end
                 

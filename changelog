@@ -1,3 +1,4 @@
+v1.0.15 -Fixing mpm push when commit message has double quotes
 v1.0.14 - fixing backslash issue for windows on register
 v1.0.13 - adding overwriting of registered packages
 v1.0.12 - more verbose mpm status
