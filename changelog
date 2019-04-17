@@ -1,3 +1,4 @@
+v1.0.13 - adding overwriting of registered packages
 v1.0.12 - more verbose mpm status
 v1.0.11 - fixed recursion check
 v1.0.10 - adding push capability

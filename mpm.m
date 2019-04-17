@@ -280,19 +280,24 @@ function mpmregister(cPackageName, cPackageNameSanitized, cRepoURL)
     stRegisteredPackages = jsondecode(cText);
     ceFieldNames = fieldnames(stRegisteredPackages);
     
+    cResponse = 'y';
     if any(strcmp(ceFieldNames, cPackageNameSanitized))
-        fprintf('Package %s already registered with mpm\n', cPackageName);
-    else
-        fprintf('Registering package %s with mpm with url: %s\n\n', cRepoURL);
-        stRegisteredPackages.(cPackageNameSanitized).repo_url = cRepoURL;
         
+        cResponse = input(sprintf('WARNING: Package "%s" already registered with mpm, OVERWRITE? (y/n)\n',cPackageName) ,'s');
+    end
+    
+    if cResponse == 'y' || cResponse == 'Y'
+        fprintf('\nRegistering package "%s" with mpm with url: %s\n\n', cPackageName, cRepoURL);
+        stRegisteredPackages.(cPackageNameSanitized).repo_url = cRepoURL;
+
         [~,cPackageName,~] = fileparts(cRepoURL);
         stRegisteredPackages.(cPackageNameSanitized).repo_name = cPackageName;
-        
+
         fid         = fopen('registered-packages.json', 'w');
         fwrite(fid, jsonencode(stRegisteredPackages));
         fclose(fid);
     end
+    
     cd(cCurDir);
 
 end
