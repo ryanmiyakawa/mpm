@@ -90,5 +90,13 @@
 	"matlab_datatranslation_measurpoint":{
 		"repo_url":"https://github.com/awojdyla/matlab-datatranslation-measurpoint.git",
 		"repo_name":"matlab-datatranslation-measurpoint"
+	},
+	"matlab_ieee":{
+		"repo_url":"https://github.com/cnanders/matlab-ieee.git",
+		"repo_name":"matlab-ieee"
+	},
+	"matlab_hex":{
+		"repo_url":"https://github.com/cnanders/matlab-hex.git",
+		"repo_name":"matlab-hex"
 	}
 }
