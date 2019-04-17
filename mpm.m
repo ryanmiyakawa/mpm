@@ -41,7 +41,7 @@ function mpm(varargin)
             
             % now write packages.json back to file:
             fid         = fopen('packages.json', 'w');
-            fwrite(fid, jsonencode(stPackages));
+            fwrite(fid, jsonPretty(stPackages));
             fclose(fid);
         case {'uninstall', 'u'}
             if ~checkmpmexists()
@@ -56,7 +56,7 @@ function mpm(varargin)
             
             % now write packages.json back to file:
             fid         = fopen('packages.json', 'w');
-            fwrite(fid, jsonencode(stPackages));
+            fwrite(fid, jsonPretty(stPackages));
             fclose(fid);
             
         case {'help', 'h'}
@@ -302,7 +302,7 @@ function mpmregister(cPackageName, cPackageNameSanitized, cRepoURL)
         stRegisteredPackages.(cPackageNameSanitized).repo_name = cPackageName;
 
         fid         = fopen('registered-packages.json', 'w');
-        fwrite(fid, jsonencode(stRegisteredPackages));
+        fwrite(fid, jsonPretty(stRegisteredPackages));
         fclose(fid);
     end
     
@@ -558,3 +558,37 @@ function printHelp()
     fprintf('> mpm update\n\tPulls latest version of mpm\n\n');
     fprintf('> mpm addpath [<optional> path to mpm-packages dir]\n\tAdds mpm-packages to path\n\n');
 end
+
+function strOut = jsonPretty(str)
+    str = jsonencode(str);
+    ct = 1;
+    strOut = '';
+    lftCt = 0;
+    while ct <= length(str)
+        ch = str(ct);
+        switch ch
+            case ','
+                strOut = sprintf('%s,\n%s',strOut, makeTabs(lftCt));
+                
+            case '{'
+                lftCt = lftCt + 1;
+                strOut = sprintf('%s{\n%s',strOut, makeTabs(lftCt));
+                
+            case '}'
+                lftCt = lftCt - 1;
+                strOut = sprintf('%s\n%s}',strOut, makeTabs(lftCt));
+                
+            otherwise
+                strOut(end+1) = ch;
+        end
+        ct = ct + 1;
+    end
+end
+
+function cTabs = makeTabs(ct)
+    cTabs = '';
+    for k = 1:ct
+        cTabs = sprintf('%s\t', cTabs);
+    end
+end
+
