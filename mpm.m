@@ -141,9 +141,9 @@ function mpm(varargin)
             listInstalledPackages();
             
             if length(varargin) > 1 && any(strcmp(varargin{2}, {'all', 'full', 'al', 'a', 'f'}))
-                printGitStatus(cePackageNames, true);
+                printGitStatus(true);
             else
-                printGitStatus(cePackageNames);
+                printGitStatus(false);
             end
             
  
@@ -337,7 +337,8 @@ function mpmregister(cPackageName, cPackageNameSanitized, cRepoURL)
     [d, ~] = fileparts(mfilename('fullpath'));
     cd(d);    
     
-    fid         = fopen('registered-packages.json', 'r');
+    cRegisteredPacakgesPath = fullfile(fileparts(mfilename('fullpath')), 'registered-packages.json');
+    fid         = fopen(cRegisteredPacakgesPath, 'r');
     cText       = fread(fid, inf, 'uint8=>char');
     fclose(fid);
     
@@ -357,7 +358,7 @@ function mpmregister(cPackageName, cPackageNameSanitized, cRepoURL)
         [~,cPackageName,~] = fileparts(cRepoURL);
         stRegisteredPackages.(cPackageNameSanitized).repo_name = cPackageName;
 
-        fid         = fopen('registered-packages.json', 'w');
+        fid         = fopen(cRegisteredPacakgesPath, 'w');
         fwrite(fid, jsonPretty(stRegisteredPackages));
         fclose(fid);
     end
@@ -369,7 +370,8 @@ end
 % Retrieves a "proper" package name from sanitized name.  Required because
 % MATLAB structs can't contain hyphens in field names like json props
 function cPackageName = getRepoName(cPackageNameSanitized)
-    fid         = fopen('registered-packages.json', 'r');
+    cRegisteredPacakgesPath = fullfile(fileparts(mfilename('fullpath')), 'registered-packages.json');
+    fid         = fopen(cRegisteredPacakgesPath, 'r');
     cText       = fread(fid, inf, 'uint8=>char');
     fclose(fid);
     
@@ -426,7 +428,8 @@ function stPackages = installPackage(cPackageName, stPackages, dDepth)
         if contains(cResponse, 'Already up to date')
             fprintf('Package "%s" is already up to date\n\n', cRepoName);
         elseif ~contains(cResponse, 'CONFLICT') % then failed
-            warning('UPDATE FAILED (MERGE CONFLICTS): package "%s" has merge conflicts, please reconcile\n', cPackageName);
+            warning('UPDATE FAILED (MERGE CONFLICTS): package "%s" has merge conflicts, please reconcile\nGit message: %s\n', cPackageName, cResponse);
+            
         else
             fprintf('Package "%s" successfully updated!\n\n', cRepoName);
         end
@@ -531,7 +534,10 @@ end
 
 function cUrl = getRegisteredPackageURL(cPackageName)
  % Lookup package in registered packages:
-    fid         = fopen('registered-packages.json', 'r');
+ 
+    cRegisteredPacakgesPath = fullfile(fileparts(mfilename('fullpath')), 'registered-packages.json');
+    
+    fid         = fopen(cRegisteredPacakgesPath, 'r');
     cText       = fread(fid, inf, 'uint8=>char');
     fclose(fid);
     stRegisteredPackages = jsondecode(cText);
@@ -554,7 +560,9 @@ function cResponse = mpmupdate()
     cd(cCurDir);
 end
 
-function printGitStatus(cePackageNames, lShowFull)
+function printGitStatus(lShowFull)
+
+    cePackageNames = getInstalledPackages();
     dNumEditedPackages = 0;
     
     if isempty(cePackageNames)
@@ -564,12 +572,13 @@ function printGitStatus(cePackageNames, lShowFull)
     % Loop through packages and run a status on each
     for k = 1:length(cePackageNames)
         cRepoName = getRepoName(cePackageNames{k});
-        cm = gitstatus(cRepoName);
-        if ~(contains(cm, 'nothing to commit, working tree clean'))
+        
+        cGitResponse = gitstatus(cRepoName);
+        if ~(contains(cGitResponse, 'nothing to commit, working tree clean'))
             dNumEditedPackages = dNumEditedPackages + 1;
             cPathToPackage = fullfile(cd, 'mpm-packages', cRepoName);
             fprintf('** Edits have been made to package "%s" in:\n   %s\n\n', cRepoName, cPathToPackage);
-        elseif nargin == 2 && lShowFull
+        elseif nargin == 1 && lShowFull
             fprintf('Package "%s": Working tree clean\n\n', cRepoName);
         end
     end
@@ -581,7 +590,8 @@ function printGitStatus(cePackageNames, lShowFull)
 end
 
 function listPackages()
-    fid         = fopen('registered-packages.json', 'r');
+    cRegisteredPacakgesPath = fullfile(fileparts(mfilename('fullpath')), 'registered-packages.json');
+    fid         = fopen(cRegisteredPacakgesPath, 'r');
     
     cText       = fread(fid, inf, 'uint8=>char');
     fclose(fid);
@@ -672,6 +682,7 @@ function printHelp()
     fprintf('=== Advanced use: Probably don''t do this unless you are Chris or Ryan ===\n');
     fprintf('> mpm register [package name] [repo-url or github url]\n\tRegisters a package to mpm\n');
     fprintf('> mpm push [commit message]\n\tCommits and pushes changes to the MPM repo\n');
+    fprintf('> mpm newversion [version notes]\n\tIncrements version number and adds version notes to changelog\n');
     fprintf('=========================================================================\n');
 end
 
