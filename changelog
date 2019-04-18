@@ -1,3 +1,4 @@
+v1.1.1 - mpm install creates mpm-packages dir if necessary
 v1.1.0 - capturing and reformatting git responses
 
 v1.0.17 - addpath now only adds src folder if it exists otherwise adds whole folder

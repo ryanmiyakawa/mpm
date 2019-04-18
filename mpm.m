@@ -37,6 +37,13 @@ function mpm(varargin)
 
     switch direct
         case {'install', 'i'}
+            
+            % On install if packages.json exists but not mpm-packages, the
+            % just make the dir:
+            if checkpackagsjsonexists() && ~checkmpmpackagesexists()
+                mkdir('mpm-packages');
+            end
+
             if ~checkmpmexists()
                 error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
