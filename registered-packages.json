@@ -98,5 +98,9 @@
 	"matlab_hex":{
 		"repo_url":"https://github.com/cnanders/matlab-hex.git",
 		"repo_name":"matlab-hex"
+	},
+	"matlab_cxro_als":{
+		"repo_url":"https://github.com/cnanders/matlab-cxro-als.git",
+		"repo_name":"matlab-cxro-als"
 	}
 }
