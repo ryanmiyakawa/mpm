@@ -59,6 +59,10 @@ function mpm(varargin)
             fid         = fopen('packages.json', 'w');
             fwrite(fid, jsonPretty(stPackages));
             fclose(fid);
+            
+            listInstalledPackages();
+
+            
         case {'uninstall', 'u'}
             if ~checkmpmexists()
                 error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
@@ -83,31 +87,30 @@ function mpm(varargin)
         case 'push'
             
             if length(varargin) < 2
-                fprintf('Please add commit message before pushing\n\n');
+                warning('(COMMIT MEASSAGE REQUIRED) \NPlease add commit message before pushing\n');
                 return
             end
-            cCurDir = cd;
-            [d, ~] = fileparts(mfilename('fullpath'));
-            cd(d);
             
-            
-            cAddText = '';
+            cCommitMessage = '';
             for k = 2:length(varargin)
-                cAddText = [cAddText ' ' varargin{k}]; %#ok<AGROW>
+                cCommitMessage = [cCommitMessage ' ' varargin{k}]; %#ok<AGROW>
             end
             
-            if ~isempty(cAddText) && (cAddText(2) == '''' || cAddText(2) == '"')
-                cAddText = cAddText(3:end);
+            if ~isempty(cCommitMessage) && (cCommitMessage(2) == '''' || cCommitMessage(2) == '"')
+                cCommitMessage = cCommitMessage(3:end);
             end
-            if ~isempty(cAddText) && (cAddText(end) == '''' || cAddText(end) == '"')
-                cAddText = cAddText(1:end-1);
+            if ~isempty(cCommitMessage) && (cCommitMessage(end) == '''' || cCommitMessage(end) == '"')
+                cCommitMessage = cCommitMessage(1:end-1);
             end
             
-            system('git add .');
-            system(sprintf('git commit -m "%s"', cAddText));
-            system('git push origin master');
+            cResponse = gitAddAndPush(cCommitMessage);
             
-            cd (cCurDir);
+            if contains(cResponse, 'git pull')
+                warning('(MPM UPDATE REQUIRED)\nMPM has unmerged updates, please update and reconcile merge\n');
+            else
+                fprintf('MPM succesfully pushed!\n\n');
+            end
+           
             
         case 'init'
             mpminit();
@@ -116,11 +119,12 @@ function mpm(varargin)
             if ~checkmpmexists()
                 error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
-             printVersion();
-            mpmupdate();
+            printVersion();
+            cResponse = mpmupdate();
+            
+            fprintf('%s\n\n', cResponse);
 
         case 'status'
-            
             
             if ~checkmpmexists()
                 error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
@@ -129,13 +133,13 @@ function mpm(varargin)
             printVersion();
             listInstalledPackages();
             
-            
-            % Loop through packages and run a status on each
-            for k = 1:length(cePackageNames)
-                fprintf('\n---------------------------------------\nStatus of package: %s\n---------------------------------------\n', getRepoName(cePackageNames{k}));
-                gitstatus(getRepoName(cePackageNames{k}));
+            if length(varargin) > 1 && any(strcmp(varargin{2}, {'all', 'full', 'al', 'a', 'f'}))
+                printGitStatus(cePackageNames, true);
+            else
+                printGitStatus(cePackageNames);
             end
-
+            
+ 
         case {'register', 'r'}
             if length(varargin) ~= 3
                 error('Required format: mpm register [package name] [package git repo url or github url]');
@@ -273,7 +277,7 @@ function mpmAddPath(cMpmDir)
             cPathVar = cePackages{k};
             addpath(genpath(cPathVar));
         end
-        fprintf('Adding %s to MATLAB path\n', cPathVar);
+        fprintf('mpm: Adding %s to MATLAB path\n', cPathVar);
 
     end
 
@@ -400,13 +404,26 @@ function stPackages = installPackage(cPackageName, stPackages, dDepth)
 
     if ~lPackageInModules
         % then this needs to be cloned:
-        % package does not exist yet
         fprintf('Installing package %s\n', cPackageName);
-        gitclone(cPackageName);
+        cResponse = gitclone(cPackageName);
+        
+        if ~contains(cResponse, 'fatal') % then failed
+            fprintf('Package "%s" successfully installed!!\n\n', cRepoName);
+        else 
+            error('Fatal error: package "%s" cannot be found', cPackageName);
+        end
     else
         % package already exists:
-        fprintf('Updating package %s\n', cPackageName);
-        gitpull(cRepoName);
+        fprintf('Checking for updates for package %s\n', cPackageName);
+        cResponse = gitpull(cRepoName);
+        if contains(cResponse, 'Already up to date')
+            fprintf('Package "%s" is already up to date\n\n', cRepoName);
+        elseif ~contains(cResponse, 'CONFLICT') % then failed
+            warning('UPDATE FAILED (MERGE CONFLICTS): package "%s" has merge conflicts, please reconcile\n', cPackageName);
+        else
+            fprintf('Package "%s" successfully updated!\n\n', cRepoName);
+        end
+            
     end
 
     % Next check whether this needs to be registered in json:
@@ -416,7 +433,7 @@ function stPackages = installPackage(cPackageName, stPackages, dDepth)
     
     % Check if the installed package has dependencies, and if so,
     % recursively install
-    if ~isempty(dir(fullfile('mpm-packages', cRepoName, 'packages.json')))
+    if ~lPackageInModules && ~isempty(dir(fullfile('mpm-packages', cRepoName, 'packages.json')))
         
         % Found dependencies in this package:
         fprintf('Found dependencies in package %s\n', cRepoName)
@@ -470,39 +487,39 @@ function stPackages = uninstallPackage(cPackageName, stPackages)
 end
 
 
-function gitpull(cPackageName)
+function cResponse = gitpull(cPackageName)
     cCurDir = cd;
     cd(fullfile('mpm-packages', cPackageName));
-    system('git pull origin master');
+    [~, cResponse] = system('git pull origin master');
     cd(cCurDir);
-    
-    fprintf('Package %s successfully updated!\n', cPackageName);
-    
 end
 
-function gitclone(cRepoName)
+function cResponse = gitclone(cRepoName)
     % Lookup package in registered packages:
 
     cPackageURL = getRegisteredPackageURL(cRepoName);
     cCurDir = cd;
     cd('mpm-packages');
-    system(sprintf('git clone %s', cPackageURL));
+    [~, cResponse] = system(sprintf('git clone %s', cPackageURL));
     cd(cCurDir);
-    
-    fprintf('Package %s successfully downloaded!\n', cRepoName);
-
 end
 
-function gitstatus(cRepoName)
+function cResponse = gitstatus(cRepoName)
     cCurDir = cd;
     cd(fullfile('mpm-packages', cRepoName));
-    [st, cm] = system('git status');
-    if (contains(cm, 'nothing to commit, working tree clean'))
-        fprintf('Working tree clean\n');
-    else
-        fprintf('>> Edits have been made to package "%s", git response:\n\n%s', cRepoName, cm);
-    end
+    [~, cResponse] = system('git status');
     cd(cCurDir);
+end
+
+function cResponse = gitAddAndPush(cCommitMessage)
+    cCurDir = cd;
+    [d, ~] = fileparts(mfilename('fullpath'));
+    cd(d);
+    
+    system('git add .');
+    [~, ~] = system(sprintf('git commit -m "%s"', cCommitMessage));
+    [~, cResponse] = system('git push origin master');
+    cd (cCurDir);
 end
 
 function cUrl = getRegisteredPackageURL(cPackageName)
@@ -522,12 +539,38 @@ function cUrl = getRegisteredPackageURL(cPackageName)
 end
 
 
-function mpmupdate()
+function cResponse = mpmupdate()
     cCurDir = cd;
     [d, ~] = fileparts(mfilename('fullpath'));
     cd(d);
-    system('git pull origin master');
+    [~, cResponse] = system('git pull origin master');
     cd(cCurDir);
+end
+
+function printGitStatus(cePackageNames, lShowFull)
+    dNumEditedPackages = 0;
+    
+    if isempty(cePackageNames)
+        return
+    end
+    
+    % Loop through packages and run a status on each
+    for k = 1:length(cePackageNames)
+        cRepoName = getRepoName(cePackageNames{k});
+        cm = gitstatus(cRepoName);
+        if ~(contains(cm, 'nothing to commit, working tree clean'))
+            dNumEditedPackages = dNumEditedPackages + 1;
+            cPathToPackage = fullfile(cd, 'mpm-packages', cRepoName);
+            fprintf('** Edits have been made to package "%s" in:\n   %s\n\n', cRepoName, cPathToPackage);
+        elseif nargin == 2 && lShowFull
+            fprintf('Package "%s": Working tree clean\n\n', cRepoName);
+        end
+    end
+    
+    if dNumEditedPackages == 0
+        fprintf('All mpm packages have clean working trees\n\n');
+    end
+
 end
 
 function listPackages()
@@ -555,7 +598,7 @@ function listInstalledPackages()
     ceInstalledPackages = getInstalledPackages();
     
     if isempty(ceInstalledPackages)
-        fprintf('No installed mpm packages\n');
+        fprintf('No installed mpm packages\n\n');
         return
     end
     fprintf('Installed mpm packages:\n---------------------------------\n');
