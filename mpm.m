@@ -427,7 +427,7 @@ function stPackages = installPackage(cPackageName, stPackages, dDepth)
         cResponse = gitpull(cRepoName);
         if contains(cResponse, 'Already up to date')
             fprintf('Package "%s" is already up to date\n\n', cRepoName);
-        elseif ~contains(cResponse, 'CONFLICT') % then failed
+        elseif contains(cResponse, 'CONFLICT') % then failed
             warning('UPDATE FAILED (MERGE CONFLICTS): package "%s" has merge conflicts, please reconcile\nGit message: %s\n', cPackageName, cResponse);
             
         else

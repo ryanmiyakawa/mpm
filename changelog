@@ -1,3 +1,4 @@
+v1.1.3 - fixing conflict echo bug
 v1.1.2 - fixed bug where mpm status crashes when package folders dont exist and require full path to registered-pacakges.json
 v1.1.1 - mpm install creates mpm-packages dir if necessary
 v1.1.0 - capturing and reformatting git responses
