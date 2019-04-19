@@ -562,16 +562,16 @@ end
 
 function printGitStatus(lShowFull)
 
-    cePackageNames = getInstalledPackages();
+    ceRepoNames = getInstalledPackages();
     dNumEditedPackages = 0;
     
-    if isempty(cePackageNames)
+    if isempty(ceRepoNames)
         return
     end
     
     % Loop through packages and run a status on each
-    for k = 1:length(cePackageNames)
-        cRepoName = getRepoName(cePackageNames{k});
+    for k = 1:length(ceRepoNames)
+        cRepoName = ceRepoNames{k};
         
         cGitResponse = gitstatus(cRepoName);
         if ~(contains(cGitResponse, 'nothing to commit, working tree clean'))
