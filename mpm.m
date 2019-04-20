@@ -126,6 +126,16 @@ function mpm(varargin)
             if ~checkmpmexists()
                 error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
+            
+            cResponse = owngitstatus();
+            
+            if contains(cResponse, 'Changes not staged for commit')
+                fprintf('%s\n', cResponse);
+                warning('MPM working tree dirty, if this is intentional, please push changes by using "mpm push" before updating');
+                return
+            end
+            
+            
             printVersion();
             cResponse = mpmupdate();
             
@@ -144,6 +154,19 @@ function mpm(varargin)
                 printGitStatus(true);
             else
                 printGitStatus(false);
+            end
+            
+        case 'ownstatus'
+            if ~checkmpmexists()
+                error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
+            end
+            cResponse = owngitstatus();
+            
+            if contains(cResponse, 'Changes not staged for commit')
+                fprintf('%s\n', cResponse);
+                warning('Working tree dirty, if this is intentional, please push changes by using "mpm push"');
+            else
+                fprintf('MPM working tree clean \n\n', cResponse);
             end
             
  
@@ -521,6 +544,16 @@ function cResponse = gitstatus(cRepoName)
     cd(cCurDir);
 end
 
+function cResponse = owngitstatus()
+    cCurDir = cd;
+    [d, ~] = fileparts(mfilename('fullpath'));
+    cd(d);
+ 
+    [~, cResponse] = system('git status');
+    
+    cd (cCurDir);
+end
+
 function cResponse = gitAddAndPush(cCommitMessage)
     cCurDir = cd;
     [d, ~] = fileparts(mfilename('fullpath'));
@@ -681,6 +714,7 @@ function printHelp()
     fprintf('=========================================================================\n');
     fprintf('=== Advanced use: Probably don''t do this unless you are Chris or Ryan ===\n');
     fprintf('> mpm register [package name] [repo-url or github url]\n\tRegisters a package to mpm\n');
+    fprintf('> mpm ownstatus \n\tDisplays git status of mpm repo\n');
     fprintf('> mpm push [commit message]\n\tCommits and pushes changes to the MPM repo\n');
     fprintf('> mpm newversion [version notes]\n\tIncrements version number and adds version notes to changelog\n');
     fprintf('=========================================================================\n');
