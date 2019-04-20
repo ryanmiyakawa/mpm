@@ -446,7 +446,7 @@ function stPackages = installPackage(cPackageName, stPackages, dDepth)
         end
     else
         % package already exists:
-        fprintf('Checking for updates for package %s\n', cPackageName);
+        fprintf('Checking for updates for package "%s"\n', cPackageName);
         cResponse = gitpull(cRepoName);
         if contains(cResponse, 'Already up to date')
             fprintf('Package "%s" is already up to date\n\n', cRepoName);
