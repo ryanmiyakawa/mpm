@@ -288,14 +288,12 @@ end
 
 function mpmAddPath(cPackagesDir, cMpmDir)
 
-
-    
-
     cCurDir = cd;
     
-    if nargin == 2
+    if nargin == 2 % mpm-packages is remote, so change to project root first
         cd(cMpmDir);
-         cePackages = getInstalledPackages();
+        cePackages = getInstalledPackages();
+        cd(cCurDir);
     else
         cePackages = getInstalledPackages();
     end
