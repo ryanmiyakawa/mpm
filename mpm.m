@@ -157,9 +157,7 @@ function mpm(varargin)
             end
             
         case 'ownstatus'
-            if ~checkmpmexists()
-                error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
-            end
+
             cResponse = owngitstatus();
             
             if contains(cResponse, 'Changes not staged for commit')
@@ -184,19 +182,18 @@ function mpm(varargin)
             cRepoName = regexprep(cRepoName, '\\', '/');
             mpmregister(cPackageName, cPackageNameSanitized, cRepoName);
         case {'addpath', 'a'}
-            if ~checkmpmexists()
-                fprintf('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
-            end
+
             
             
             % adds path of mpm-packages to general path
             if length(varargin) == 2
-                cPathVar = fullfile(varargin{2}, 'mpm-packages');
+                cMpmDir = varargin{2};
+                cPathVar = fullfile(cMpmDir, 'mpm-packages');
             else
                 cPathVar = 'mpm-packages';
             end
             
-            mpmAddPath(cPathVar)
+            mpmAddPath(cPathVar, cMpmDir);
             
             
             
@@ -289,12 +286,20 @@ function lVal = checkmpmpackagesexists()
     lVal =   ~isempty(dir('mpm-packages'));
 end
 
-function mpmAddPath(cMpmDir)
+function mpmAddPath(cPackagesDir, cMpmDir)
 
-    cePackages = getInstalledPackages();
+
+    
 
     cCurDir = cd;
-    cd (cMpmDir);
+    
+    if nargin == 2
+        cd(cMpmDir);
+         cePackages = getInstalledPackages();
+    else
+        cePackages = getInstalledPackages();
+    end
+    cd (cPackagesDir);
 
 
     for k = 1:length(cePackages)
