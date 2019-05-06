@@ -20,7 +20,9 @@ function mpm(varargin)
 %     curDir = cd;
 
     % Load package information from package.json
-    [cePackageNames, stPackages] = getPackageListFromJson('packages.json');
+    
+    cFile = fullfile(pwd, 'packages.json');     
+    [cePackageNames, stPackages] = getPackageListFromJson(cFile);
 
 
     if isempty(varargin)
@@ -408,6 +410,21 @@ end
 
 function [cePackageNames, stPackages] = getPackageListFromJson(cJsonName)
  % Load package information from package.json
+ 
+    
+    if exist(cJsonName, 'file') ~= 2
+        
+        % fprintf('%s does not exist.\n', cJsonName);
+        % fprintf('Type "mpm init" (without quotes) to intialize mpm and generate this file.\n\n');
+        
+        cePackageNames = {};
+        stPackages = struct;
+        stPackages.dependencies = {};
+        
+        return;
+    end
+    
+    
     fid         = fopen(cJsonName, 'r');
     cText       = fread(fid, inf, 'uint8=>char');
     fclose(fid);
