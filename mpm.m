@@ -189,11 +189,13 @@ function mpm(varargin)
             if length(varargin) == 2
                 cMpmDir = varargin{2};
                 cPathVar = fullfile(cMpmDir, 'mpm-packages');
+                mpmAddPath(cPathVar, cMpmDir);
             else
                 cPathVar = 'mpm-packages';
+                mpmAddPath(cPathVar);
             end
             
-            mpmAddPath(cPathVar, cMpmDir);
+            
             
             
             
