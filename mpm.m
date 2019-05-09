@@ -20,7 +20,9 @@ function mpm(varargin)
 %     curDir = cd;
 
     % Load package information from package.json
-    [cePackageNames, stPackages] = getPackageListFromJson('packages.json');
+    
+    cFile = fullfile(pwd, 'packages.json');     
+    [cePackageNames, stPackages] = getPackageListFromJson(cFile);
 
 
     if isempty(varargin)
@@ -366,11 +368,8 @@ function mpmregister(cPackageName, cPackageNameSanitized, cRepoURL)
     cd(d);    
     
     cRegisteredPacakgesPath = fullfile(fileparts(mfilename('fullpath')), 'registered-packages.json');
-    fid         = fopen(cRegisteredPacakgesPath, 'r');
-    cText       = fread(fid, inf, 'uint8=>char');
-    fclose(fid);
     
-    stRegisteredPackages = jsondecode(cText);
+    stRegisteredPackages = getRegisteredPackages();
     ceFieldNames = fieldnames(stRegisteredPackages);
     
     cResponse = 'y';
@@ -398,18 +397,28 @@ end
 % Retrieves a "proper" package name from sanitized name.  Required because
 % MATLAB structs can't contain hyphens in field names like json props
 function cPackageName = getRepoName(cPackageNameSanitized)
-    cRegisteredPacakgesPath = fullfile(fileparts(mfilename('fullpath')), 'registered-packages.json');
-    fid         = fopen(cRegisteredPacakgesPath, 'r');
-    cText       = fread(fid, inf, 'uint8=>char');
-    fclose(fid);
-    
-    stRegisteredPackages = jsondecode(cText);
+    stRegisteredPackages = getRegisteredPackages();
     cPackageName = stRegisteredPackages.(cPackageNameSanitized).repo_name;
 end
 
 
 function [cePackageNames, stPackages] = getPackageListFromJson(cJsonName)
  % Load package information from package.json
+ 
+    
+    if exist(cJsonName, 'file') ~= 2
+        
+        % fprintf('%s does not exist.\n', cJsonName);
+        % fprintf('Type "mpm init" (without quotes) to intialize mpm and generate this file.\n\n');
+        
+        cePackageNames = {};
+        stPackages = struct;
+        stPackages.dependencies = {};
+        
+        return;
+    end
+    
+    
     fid         = fopen(cJsonName, 'r');
     cText       = fread(fid, inf, 'uint8=>char');
     fclose(fid);
@@ -421,7 +430,7 @@ function [cePackageNames, stPackages] = getPackageListFromJson(cJsonName)
         stPackages = struct;
         stPackages.dependencies = {};
     else
-        stPackages  = jsondecode(cText);
+        stPackages  = jsondecode(cText');
         cePackageNames = stPackages.dependencies;
     end
 end
@@ -570,15 +579,23 @@ function cResponse = gitAddAndPush(cCommitMessage)
     cd (cCurDir);
 end
 
-function cUrl = getRegisteredPackageURL(cPackageName)
- % Lookup package in registered packages:
- 
+
+function st = getRegisteredPackages()
+ % Returns a structure of registered packages
     cRegisteredPacakgesPath = fullfile(fileparts(mfilename('fullpath')), 'registered-packages.json');
-    
     fid         = fopen(cRegisteredPacakgesPath, 'r');
     cText       = fread(fid, inf, 'uint8=>char');
     fclose(fid);
-    stRegisteredPackages = jsondecode(cText);
+    st = jsondecode(cText');
+
+end
+
+function cUrl = getRegisteredPackageURL(cPackageName)
+ % Lookup package in registered packages:
+ 
+    
+    stRegisteredPackages = getRegisteredPackages(); 
+    
     ceFieldNames = fieldnames(stRegisteredPackages);
     
     if ~any(strcmp(ceFieldNames, cPackageName))
@@ -628,13 +645,7 @@ function printGitStatus(lShowFull)
 end
 
 function listPackages()
-    cRegisteredPacakgesPath = fullfile(fileparts(mfilename('fullpath')), 'registered-packages.json');
-    fid         = fopen(cRegisteredPacakgesPath, 'r');
-    
-    cText       = fread(fid, inf, 'uint8=>char');
-    fclose(fid);
-    
-    stRegisteredPackages = jsondecode(cText);
+    stRegisteredPackages = getRegisteredPackages();
     
     ceFieldNames = fieldnames(stRegisteredPackages);
     
@@ -678,7 +689,7 @@ function ceInstalledPackages = getInstalledPackages()
     cText       = fread(fid, inf, 'uint8=>char');
     fclose(fid);
 
-    stPackages = jsondecode(cText);
+    stPackages = jsondecode(cText');
 
     ceFieldNames = stPackages.dependencies;
     ceInstalledPackages = {};
