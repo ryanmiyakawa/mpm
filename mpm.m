@@ -199,7 +199,11 @@ function mpm(varargin)
             
             
             
-            
+        case {'cd', 'cdmpm'}
+            [d, ~] = fileparts(mfilename('fullpath'));
+            cd(d);
+            fprintf('Changed directory to mpm root\n\n');
+           
             
         case {'ver', 'version', 'v'}
             
