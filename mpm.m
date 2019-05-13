@@ -50,23 +50,66 @@ function mpm(varargin)
             end
             dDepth = 0;
 
+            ceUpdatedPackages = {};
+            ceInstalledPackages = {};
+            
             if length(varargin) == 1
                 % install/update all from packages.json
                 
                 for k = 1:length(cePackageNames)
-                    stPackages = mpmInstallPackage(cePackageNames{k}, stPackages, dDepth);
+                    [stPackages, exitFlag] = mpmInstallPackage(cePackageNames{k}, stPackages, dDepth);
+                    if exitFlag == 1
+                        ceInstalledPackages{end+1} = cePackageNames{k};
+                    end
+                    if exitFlag == 2
+                        ceUpdatedPackages{end+1} = cePackageNames{k};
+                    end
                 end
+                
 
             else
                 % Just install specific packages
                 cPackageName = regexprep(varargin{2}, '-', '_');
-                stPackages = mpmInstallPackage(cPackageName, stPackages, dDepth);
+                [stPackages, exitFlag] = mpmInstallPackage(cPackageName, stPackages, dDepth);
+                
+                if exitFlag == 1
+                    ceInstalledPackages{end+1} = cePackageNames{k};
+                end
+                if exitFlag == 2
+                    ceUpdatedPackages{end+1} = cePackageNames{k};
+                end
             end
             
             % now write packages.json back to file:
             fid         = fopen('packages.json', 'w');
             fwrite(fid, jsonPretty(stPackages));
             fclose(fid);
+            
+            % Echo updates:
+            if ~isempty(ceInstalledPackages)
+                fprintf('\nMPM successfully installed the following packages: \n');
+                for k = 1:length(ceInstalledPackages)
+                    if k == length(ceInstalledPackages)
+                         fprintf('%s\n\n', ceInstalledPackages{k});
+                    else
+                         fprintf('%s, ', ceInstalledPackages{k});
+                    end
+                end
+            end
+            if ~isempty(ceUpdatedPackages)
+                fprintf('\nMPM successfully installed the following packages: \n');
+                for k = 1:length(ceUpdatedPackages)
+                    if k == length(ceUpdatedPackages)
+                         fprintf('%s\n\n', ceUpdatedPackages{k});
+                    else
+                         fprintf('%s, ', ceUpdatedPackages{k});
+                    end
+                end
+            end
+            
+            if isempty(ceInstalledPackages) && isempty(ceUpdatedPackages)
+                fprintf('\nAll packages are up to date!\n\n');
+            end
             
             listInstalledPackages();
 
@@ -468,13 +511,15 @@ function [cePackageNames, stPackages] = getPackageListFromJson(cJsonName)
     end
 end
 
-function stPackages = mpmInstallPackage(cPackageName, stPackages, dDepth)
+function [stPackages, exitFlag] = mpmInstallPackage(cPackageName, stPackages, dDepth)
+    
     if ~isfield(stPackages, 'dependencies')
         stPackages.dependencies = {};
     end
     ceDependencies = stPackages.dependencies;
     
     cRepoName = getRepoName(cPackageName);
+    
 
 
     % Booleans reflecting existence of package
@@ -488,6 +533,7 @@ function stPackages = mpmInstallPackage(cPackageName, stPackages, dDepth)
         
         if ~contains(cResponse, 'fatal') % then failed
             fprintf('Package "%s" successfully installed!!\n\n', cRepoName);
+            exitFlag = 1; % Installed
         else 
             error('Fatal error: package "%s" cannot be found', cPackageName);
         end
@@ -497,11 +543,14 @@ function stPackages = mpmInstallPackage(cPackageName, stPackages, dDepth)
         cResponse = gitpull(cRepoName);
         if contains(cResponse, 'Already up to date')
             % fprintf('Package "%s" is already up to date\n\n', cRepoName);
+            exitFlag = 3; % Already up to date
         elseif contains(cResponse, 'CONFLICT') % then failed
-            warning('UPDATE FAILED (MERGE CONFLICTS): package "%s" has merge conflicts, please reconcile\nGit message: %s\n', cPackageName, cResponse);
-            
+            exitFlag = 4; % Merge conflicts
+            warning('UPDATE FAILED (MERGE CONFLICTS): package "%s" has merge conflicts, please reconcile\nGit message: %s\n', cPackageName, cResponse);       
         else
-            fprintf('Package "%s" successfully updated!\n\n', cRepoName);
+            
+%             fprintf('Package "%s" successfully updated!\n\n', cRepoName);
+            exitFlag = 2; % Updated
         end
             
     end
