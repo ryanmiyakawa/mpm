@@ -249,6 +249,10 @@ function mpm(varargin)
                 mpmAddPath(cPathVar);
             end
             
+        case {'clearpath', 'clear', 'c'}           
+            
+            % Reset path to pathdef:
+            path(pathdef);
             
             
         case {'cd', 'cdmpm'}
@@ -803,6 +807,7 @@ function printHelp()
     fprintf('mpm init \t\tInits mpm to current directory\n');
     fprintf('mpm list \t\tLists registered and available mpm packages\n');
     fprintf('mpm addpath [<optional> path to mpm-packages dir]\n\t\t\tAdds mpm-packages to path\n');
+    fprintf('mpm clearpath \t\tResets path to MATLAB pathdef\n');
     fprintf('mpm install \t\tInstalls/updates packages specified in package.json\n');
     fprintf('mpm install [package name]\n\t\t\tInstalls/updates a specific named package from mpm registered packages\n');
     fprintf('mpm uninstall [package name]\n\t\t\tRemoves named package from project\n');
