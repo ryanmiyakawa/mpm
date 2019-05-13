@@ -16,11 +16,7 @@ the command line to work properly.
 
 function mpm(varargin)
 
-
-%     curDir = cd;
-
     % Load package information from package.json
-    
     cFile = fullfile(pwd, 'packages.json');     
     [cePackageNames, stPackages] = getPackageListFromJson(cFile);
 
@@ -31,14 +27,17 @@ function mpm(varargin)
         direct = varargin{1};
     end
 
-%     try
 
     if direct(1) == '-'
         direct = direct(2:end);
     end
-
+    
+    
+    % PRIMARY ROUTER
     switch direct
         case {'install', 'i'}
+            
+            requireGitOrDie(); % Warn and return if git is not installed
             
             % On install if packages.json exists but not mpm-packages, the
             % just make the dir:
@@ -55,13 +54,13 @@ function mpm(varargin)
                 % install/update all from packages.json
                 
                 for k = 1:length(cePackageNames)
-                    stPackages = installPackage(cePackageNames{k}, stPackages, dDepth);
+                    stPackages = mpmInstallPackage(cePackageNames{k}, stPackages, dDepth);
                 end
 
             else
                 % Just install specific packages
                 cPackageName = regexprep(varargin{2}, '-', '_');
-                stPackages = installPackage(cPackageName, stPackages, dDepth);
+                stPackages = mpmInstallPackage(cPackageName, stPackages, dDepth);
             end
             
             % now write packages.json back to file:
@@ -73,6 +72,8 @@ function mpm(varargin)
 
             
         case {'uninstall', 'u'}
+            requireGitOrDie(); % Warn and return if git is not installed
+            
             if ~checkmpmexists()
                 error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
@@ -81,7 +82,7 @@ function mpm(varargin)
             end
             
             cPackageName = regexprep(varargin{2}, '-', '_');
-            stPackages = uninstallPackage(cPackageName, stPackages);
+            stPackages = unmpmInstallPackage(cPackageName, stPackages);
             
             % now write packages.json back to file:
             fid         = fopen('packages.json', 'w');
@@ -94,6 +95,7 @@ function mpm(varargin)
             listPackages();
             
         case 'push'
+            requireGitOrDie(); % Warn and return if git is not installed
             
             if length(varargin) < 2
                 warning('(COMMIT MEASSAGE REQUIRED) \NPlease add commit message before pushing\n');
@@ -122,9 +124,13 @@ function mpm(varargin)
            
             
         case 'init'
-            mpminit();
+           requireGitOrDie(); % Warn and return if git is not installed
+           
+           mpminit();
             
         case {'update'}
+            requireGitOrDie(); % Warn and return if git is not installed
+            
             if ~checkmpmexists()
                 error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
             end
@@ -144,6 +150,7 @@ function mpm(varargin)
             fprintf('%s\n\n', cResponse);
 
         case 'status'
+            requireGitOrDie(); % Warn and return if git is not installed
             
             if ~checkmpmexists()
                 error('Warning: MPM is not initialized in this directory, run "mpm init" to initialize');
@@ -159,7 +166,8 @@ function mpm(varargin)
             end
             
         case 'ownstatus'
-
+            requireGitOrDie(); % Warn and return if git is not installed
+            
             cResponse = owngitstatus();
             
             if contains(cResponse, 'Changes not staged for commit')
@@ -171,9 +179,12 @@ function mpm(varargin)
             
  
         case {'register', 'r'}
+            requireGitOrDie(); % Warn and return if git is not installed
+            
             if length(varargin) ~= 3
                 error('Required format: mpm register [package name] [package git repo url or github url]');
             end
+            
             cPackageName = varargin{2};
             cPackageNameSanitized = regexprep(varargin{2}, '-', '_');
             [p, d, e] = fileparts(varargin{3});
@@ -183,9 +194,7 @@ function mpm(varargin)
             cRepoName = fullfile(p,[d,e]);
             cRepoName = regexprep(cRepoName, '\\', '/');
             mpmregister(cPackageName, cPackageNameSanitized, cRepoName);
-        case {'addpath', 'a'}
-
-            
+        case {'addpath', 'a'}           
             
             % adds path of mpm-packages to general path
             if length(varargin) == 2
@@ -216,8 +225,18 @@ function mpm(varargin)
             if length(varargin) == 1 || ~strcmp(varargin{2}, 'nochangelog')
                 fprintf('Version history:\n----------------\n%s\n\n', cChangelog);
             end
+            
+            if ~checkGitWorks()
+                warning('MPM requires git to be installed on the command line')
+                return
+            end
                 
         case {'newversion', 'new-version', 'n'}
+            if ~checkGitWorks()
+                warning('MPM requires git to be installed on the command line')
+                return
+            end
+            
             cCurDir = cd;
             [d, ~] = fileparts(mfilename('fullpath'));
             cd(d);
@@ -281,6 +300,19 @@ function mpm(varargin)
 %     end
 
 end
+
+
+function requireGitOrDie()
+    if ~checkGitWorks()
+        error(sprintf('MPM requires git to be installed on the command line.\nInstall git for command line and run "mpm help" to get started'))   
+    end
+end
+
+function lVal = checkGitWorks()
+    [st, cm] = system('git help -g');
+    lVal = strfind(cm, 'The common Git guides are:');
+end
+
 
 function lVal = checkmpmexists()
     lVal =  checkpackagsjsonexists() && checkmpmpackagesexists();
@@ -412,9 +444,6 @@ function [cePackageNames, stPackages] = getPackageListFromJson(cJsonName)
     
     if exist(cJsonName, 'file') ~= 2
         
-        % fprintf('%s does not exist.\n', cJsonName);
-        % fprintf('Type "mpm init" (without quotes) to intialize mpm and generate this file.\n\n');
-        
         cePackageNames = {};
         stPackages = struct;
         stPackages.dependencies = {};
@@ -439,7 +468,7 @@ function [cePackageNames, stPackages] = getPackageListFromJson(cJsonName)
     end
 end
 
-function stPackages = installPackage(cPackageName, stPackages, dDepth)
+function stPackages = mpmInstallPackage(cPackageName, stPackages, dDepth)
     if ~isfield(stPackages, 'dependencies')
         stPackages.dependencies = {};
     end
@@ -467,7 +496,7 @@ function stPackages = installPackage(cPackageName, stPackages, dDepth)
         fprintf('Checking for updates for package "%s"\n', cPackageName);
         cResponse = gitpull(cRepoName);
         if contains(cResponse, 'Already up to date')
-            fprintf('Package "%s" is already up to date\n\n', cRepoName);
+            % fprintf('Package "%s" is already up to date\n\n', cRepoName);
         elseif contains(cResponse, 'CONFLICT') % then failed
             warning('UPDATE FAILED (MERGE CONFLICTS): package "%s" has merge conflicts, please reconcile\nGit message: %s\n', cPackageName, cResponse);
             
@@ -498,14 +527,14 @@ function stPackages = installPackage(cPackageName, stPackages, dDepth)
             % Install only if this package does not exist in level-one
             % packages:
             if ~any(strcmp(ceDependencies, cePackageNames{k}))
-                stPackages = installPackage(cePackageNames{k}, stPackages, dDepth + 1);
+                stPackages = mpmInstallPackage(cePackageNames{k}, stPackages, dDepth + 1);
             end
         end
     end
 
 end
 
-function stPackages = uninstallPackage(cPackageName, stPackages)
+function stPackages = unmpmInstallPackage(cPackageName, stPackages)
     if ~isfield(stPackages, 'dependencies')
         stPackages.dependencies = {};
     end
@@ -713,30 +742,32 @@ function printVersion()
     fid         = fopen('version', 'r');
     cVersion       = fread(fid, inf, 'uint8=>char');
     fclose(fid);
-    fprintf('----------------------------------\nMPM MATLAB package manager %s\n----------------------------------\n\n', cVersion);
+    fprintf(['----------------------------------\nMPM MATLAB package manager %s\n', ...
+        'Center for X-ray Optics\n' ...
+        '----------------------------------\n\n'], cVersion);
 end
 
 function printHelp()
  
     printVersion();
     fprintf('USAGE:\n');
-    fprintf('> mpm init\n\tInits mpm to current directory\n\n');
-    fprintf('> mpm list \n\tLists registered and available mpm packages\n\n');
-    fprintf('> mpm addpath [<optional> path to mpm-packages dir]\n\tAdds mpm-packages to path\n\n');
-    fprintf('> mpm install \n\tInstalls/updates packages specified in package.json\n\n');
-    fprintf('> mpm install [package name]\n\tInstalls/updates a specific named package from mpm registered packages\n\n');
-    fprintf('> mpm uninstall [package name]\n\tRemoves named package from project\n\n');
-    fprintf('> mpm status\n\tEchoes installed packages and git status of all mpm package git repos\n\n');
+    fprintf('mpm init \t\tInits mpm to current directory\n');
+    fprintf('mpm list \t\tLists registered and available mpm packages\n');
+    fprintf('mpm addpath [<optional> path to mpm-packages dir]\n\t\t\tAdds mpm-packages to path\n');
+    fprintf('mpm install \t\tInstalls/updates packages specified in package.json\n');
+    fprintf('mpm install [package name]\n\t\t\tInstalls/updates a specific named package from mpm registered packages\n');
+    fprintf('mpm uninstall [package name]\n\t\t\tRemoves named package from project\n');
+    fprintf('mpm status\t\tEchoes installed packages and git status of all mpm package git repos\n');
     
-    fprintf('> mpm version\n\tEchoes mpm version and changelog\n\n');
-    fprintf('> mpm update\n\tPulls latest version of mpm\n\n');
+    fprintf('mpm version\t\tEchoes mpm version and changelog\n');
+    fprintf('mpm update\t\tPulls latest version of mpm\n');
     
-    fprintf('=========================================================================\n');
+    fprintf('\n=========================================================================\n');
     fprintf('=== Advanced use: Probably don''t do this unless you are Chris or Ryan ===\n');
-    fprintf('> mpm register [package name] [repo-url or github url]\n\tRegisters a package to mpm\n');
-    fprintf('> mpm ownstatus \n\tDisplays git status of mpm repo\n');
-    fprintf('> mpm push [commit message]\n\tCommits and pushes changes to the MPM repo\n');
-    fprintf('> mpm newversion [version notes]\n\tIncrements version number and adds version notes to changelog\n');
+    fprintf('mpm register [package name] [repo-url or github url]\n\t\t\tRegisters a package to mpm\n');
+    fprintf('mpm ownstatus \t\tDisplays git status of mpm repo\n');
+    fprintf('mpm push [commit message]\n\t\t\tCommits and pushes changes to the MPM repo\n');
+    fprintf('mpm newversion [version notes]\n\t\t\tIncrements version number and adds version notes to changelog\n');
     fprintf('=========================================================================\n');
 end
 
