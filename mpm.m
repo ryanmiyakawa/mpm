@@ -543,17 +543,22 @@ function [stPackages, exitFlag] = mpmInstallPackage(cPackageName, stPackages, dD
         end
     else
         % package already exists:
-        fprintf('Checking for updates for package "%s"\n', cPackageName);
+        fprintf('Checking for updates for package "%s": ', cPackageName);
         cResponse = gitpull(cRepoName);
         if contains(cResponse, 'Already up to date')
-            % fprintf('Package "%s" is already up to date\n\n', cRepoName);
+            fprintf('Package "%s" is already up to date\n', cRepoName);
             exitFlag = 3; % Already up to date
+        elseif contains(cResponse, 'Please commit your changes or stash')
+            fprintf('\n');
+            warning('UPDATE FAILED (Dirty working tree): package "%s" has local changes: \nGit message: %s\n', cPackageName, cResponse);       
+            exitFlag = 5;
         elseif contains(cResponse, 'CONFLICT') % then failed
             exitFlag = 4; % Merge conflicts
+            fprintf('\n');
             warning('UPDATE FAILED (MERGE CONFLICTS): package "%s" has merge conflicts, please reconcile\nGit message: %s\n', cPackageName, cResponse);       
         else
             
-%             fprintf('Package "%s" successfully updated!\n\n', cRepoName);
+            fprintf('Package "%s" successfully updated!\n', cRepoName);
             exitFlag = 2; % Updated
         end
             
