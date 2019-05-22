@@ -190,7 +190,12 @@ function mpm(varargin)
             printVersion();
             cResponse = mpmupdate();
             
-            fprintf('%s\n\n', cResponse);
+            if contains(cResponse, 'already up to date')
+                fprintf('MPM is already up to date.  To update MPM packages, run "mpm install"\n\n');
+            else
+                fprintf('%s\n\n', cResponse);
+            end
+            
 
         case 'status'
             requireGitOrDie(); % Warn and return if git is not installed
