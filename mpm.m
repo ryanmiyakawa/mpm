@@ -190,7 +190,7 @@ function mpm(varargin)
             printVersion();
             cResponse = mpmupdate();
             
-            if contains(cResponse, 'already up to date')
+            if contains(cResponse, 'Already up to date')
                 fprintf('MPM is already up to date.  To update MPM packages, run "mpm install"\n\n');
             else
                 fprintf('%s\n\n', cResponse);
