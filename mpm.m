@@ -73,10 +73,10 @@ function mpm(varargin)
                 [stPackages, exitFlag] = mpmInstallPackage(cPackageName, stPackages, dDepth);
                 
                 if exitFlag == 1
-                    ceInstalledPackages{end+1} = cePackageNames{k};
+                    ceInstalledPackages{end+1} = cPackageName;
                 end
                 if exitFlag == 2
-                    ceUpdatedPackages{end+1} = cePackageNames{k};
+                    ceUpdatedPackages{end+1} = cPackageName;
                 end
             end
             

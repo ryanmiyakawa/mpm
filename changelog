@@ -1,3 +1,4 @@
+v1.1.15 - fixed bug with single package install
 v1.1.14 - installing when working tree is dirty now aborts
 v1.1.13 - adding clearpath
 v1.1.12 - formatting changes to mpm install output
