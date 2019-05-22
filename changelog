@@ -1,3 +1,4 @@
+v1.1.16 - updating text to properly reflect updated packages on install
 v1.1.15 - fixed bug with single package install
 v1.1.14 - installing when working tree is dirty now aborts
 v1.1.13 - adding clearpath

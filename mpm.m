@@ -97,7 +97,7 @@ function mpm(varargin)
                 end
             end
             if ~isempty(ceUpdatedPackages)
-                fprintf('\nMPM successfully installed the following packages: \n');
+                fprintf('\nMPM successfully updated the following packages: \n');
                 for k = 1:length(ceUpdatedPackages)
                     if k == length(ceUpdatedPackages)
                          fprintf('%s\n\n', ceUpdatedPackages{k});
