@@ -486,7 +486,21 @@ end
 % MATLAB structs can't contain hyphens in field names like json props
 function cPackageName = getRepoName(cPackageNameSanitized)
     stRegisteredPackages = getRegisteredPackages();
+    if ~isfield(stRegisteredPackages, cPackageNameSanitized)
+        cPackageName =  [];
+        return
+    end
     cPackageName = stRegisteredPackages.(cPackageNameSanitized).repo_name;
+end
+
+function cPackageName = getRepoByNumber(dNum)
+    stRegisteredPackages = getRegisteredPackages();
+    cFieldNames = fieldnames(stRegisteredPackages);
+    if dNum > length(cFieldNames)
+        error ('There is no package number %d', dNum)
+    end
+    cPackageName = stRegisteredPackages.(cFieldNames{dNum}).repo_name;
+
 end
 
 
@@ -527,7 +541,18 @@ function [stPackages, exitFlag] = mpmInstallPackage(cPackageName, stPackages, dD
     end
     ceDependencies = stPackages.dependencies;
     
+    
+    
     cRepoName = getRepoName(cPackageName);
+    if isempty(cRepoName)
+        % See if this is a number, then get package by number
+        if all(ismember(cPackageName, '0123456789'))
+            cRepoName = getRepoByNumber(str2double(cPackageName));
+            cPackageName = regexprep(cRepoName, '-', '_');
+        else
+            error('Fatal error: package "%s" cannot be found', cPackageName);
+        end
+    end
     
 
 
