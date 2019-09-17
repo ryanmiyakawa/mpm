@@ -73,10 +73,10 @@ function mpm(varargin)
                 [stPackages, exitFlag] = mpmInstallPackage(cPackageName, stPackages, dDepth);
                 
                 if exitFlag == 1
-                    ceInstalledPackages{end+1} = cePackageNames{k};
+                    ceInstalledPackages{end+1} = cPackageName;
                 end
                 if exitFlag == 2
-                    ceUpdatedPackages{end+1} = cePackageNames{k};
+                    ceUpdatedPackages{end+1} = cPackageName;
                 end
             end
             
@@ -97,7 +97,7 @@ function mpm(varargin)
                 end
             end
             if ~isempty(ceUpdatedPackages)
-                fprintf('\nMPM successfully installed the following packages: \n');
+                fprintf('\nMPM successfully updated the following packages: \n');
                 for k = 1:length(ceUpdatedPackages)
                     if k == length(ceUpdatedPackages)
                          fprintf('%s\n\n', ceUpdatedPackages{k});
@@ -190,7 +190,12 @@ function mpm(varargin)
             printVersion();
             cResponse = mpmupdate();
             
-            fprintf('%s\n\n', cResponse);
+            if contains(cResponse, 'Already up to date')
+                fprintf('MPM is already up to date.  To update MPM packages, run "mpm install"\n\n');
+            else
+                fprintf('%s\n\n', cResponse);
+            end
+            
 
         case 'status'
             requireGitOrDie(); % Warn and return if git is not installed
@@ -481,7 +486,21 @@ end
 % MATLAB structs can't contain hyphens in field names like json props
 function cPackageName = getRepoName(cPackageNameSanitized)
     stRegisteredPackages = getRegisteredPackages();
+    if ~isfield(stRegisteredPackages, cPackageNameSanitized)
+        cPackageName =  [];
+        return
+    end
     cPackageName = stRegisteredPackages.(cPackageNameSanitized).repo_name;
+end
+
+function cPackageName = getRepoByNumber(dNum)
+    stRegisteredPackages = getRegisteredPackages();
+    cFieldNames = fieldnames(stRegisteredPackages);
+    if dNum > length(cFieldNames)
+        error ('There is no package number %d', dNum)
+    end
+    cPackageName = stRegisteredPackages.(cFieldNames{dNum}).repo_name;
+
 end
 
 
@@ -522,7 +541,18 @@ function [stPackages, exitFlag] = mpmInstallPackage(cPackageName, stPackages, dD
     end
     ceDependencies = stPackages.dependencies;
     
+    
+    
     cRepoName = getRepoName(cPackageName);
+    if isempty(cRepoName)
+        % See if this is a number, then get package by number
+        if all(ismember(cPackageName, '0123456789'))
+            cRepoName = getRepoByNumber(str2double(cPackageName));
+            cPackageName = regexprep(cRepoName, '-', '_');
+        else
+            error('Fatal error: package "%s" cannot be found', cPackageName);
+        end
+    end
     
 
 
