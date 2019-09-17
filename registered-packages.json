@@ -102,5 +102,9 @@
 	"matlab_cxro_als":{
 		"repo_url":"https://github.com/cnanders/matlab-cxro-als.git",
 		"repo_name":"matlab-cxro-als"
+	},
+	"matlab_prolith_src":{
+		"repo_url":"https://github.com/cnanders/matlab-prolith-src.git",
+		"repo_name":"matlab-prolith-src"
 	}
 }
