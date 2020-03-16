@@ -106,5 +106,9 @@
 	"matlab_prolith_src":{
 		"repo_url":"https://github.com/cnanders/matlab-prolith-src.git",
 		"repo_name":"matlab-prolith-src"
+	},
+	"matlab_ascii_comm":{
+		"repo_url":"https://github.com/cnanders/matlab-ascii-comm.git",
+		"repo_name":"matlab-ascii-comm"
 	}
 }
