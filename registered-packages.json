@@ -110,5 +110,9 @@
 	"matlab_ascii_comm":{
 		"repo_url":"https://github.com/cnanders/matlab-ascii-comm.git",
 		"repo_name":"matlab-ascii-comm"
+	},
+	"matlab_pi_hydra_met5":{
+		"repo_url":"https://github.com/cnanders/matlab-pi-hydra-met5.git",
+		"repo_name":"matlab-pi-hydra-met5"
 	}
 }
