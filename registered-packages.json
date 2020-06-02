@@ -118,5 +118,9 @@
 	"matlab_srs_sr570":{
 		"repo_url":"https://github.com/cnanders/matlab-srs-sr570.git",
 		"repo_name":"matlab-srs-sr570"
+	},
+	"matlab_comm":{
+		"repo_url":"https://github.com/cnanders/matlab-comm.git",
+		"repo_name":"matlab-comm"
 	}
 }
