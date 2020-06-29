@@ -106,5 +106,14 @@
 	"matlab_prolith_src":{
 		"repo_url":"https://github.com/cnanders/matlab-prolith-src.git",
 		"repo_name":"matlab-prolith-src"
+	},
+	"patrick_toolbox":{
+		"repo_url":"https://github.com/ryanmiyakawa/patrick-toolbox.git",
+		"repo_name":"patrick-toolbox"
+	},
+    "gds_diffraction":{
+		"repo_url":"https://github.com/mlwdjq/GDS-diffraction",
+		"repo_name":"gds-diffraction"
 	}
+
 }
