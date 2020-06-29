@@ -114,6 +114,22 @@
     "gds_diffraction":{
 		"repo_url":"https://github.com/mlwdjq/GDS-diffraction",
 		"repo_name":"gds-diffraction"
+    },
+	"matlab_ascii_comm":{
+		"repo_url":"https://github.com/cnanders/matlab-ascii-comm.git",
+		"repo_name":"matlab-ascii-comm"
+	},
+	"matlab_pi_hydra_met5":{
+		"repo_url":"https://github.com/cnanders/matlab-pi-hydra-met5.git",
+		"repo_name":"matlab-pi-hydra-met5"
+	},
+	"matlab_srs_sr570":{
+		"repo_url":"https://github.com/cnanders/matlab-srs-sr570.git",
+		"repo_name":"matlab-srs-sr570"
+	},
+	"matlab_comm":{
+		"repo_url":"https://github.com/cnanders/matlab-comm.git",
+		"repo_name":"matlab-comm"
 	}
 
 }

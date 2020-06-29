@@ -668,7 +668,7 @@ function cResponse = gitclone(cRepoName)
     cPackageURL = getRegisteredPackageURL(cRepoName);
     cCurDir = cd;
     cd('mpm-packages');
-    [~, cResponse] = system(sprintf('git clone %s', cPackageURL));
+    [~, cResponse] = system(sprintf('git clone -c core.longpaths=true %s', cPackageURL));
     cd(cCurDir);
 end
 
