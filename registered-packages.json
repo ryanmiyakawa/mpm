@@ -111,10 +111,10 @@
 		"repo_url":"https://github.com/ryanmiyakawa/patrick-toolbox.git",
 		"repo_name":"patrick-toolbox"
 	},
-    "gds_diffraction":{
+	"gds_diffraction":{
 		"repo_url":"https://github.com/mlwdjq/GDS-diffraction",
 		"repo_name":"gds-diffraction"
-    },
+	},
 	"matlab_ascii_comm":{
 		"repo_url":"https://github.com/cnanders/matlab-ascii-comm.git",
 		"repo_name":"matlab-ascii-comm"
@@ -130,6 +130,9 @@
 	"matlab_comm":{
 		"repo_url":"https://github.com/cnanders/matlab-comm.git",
 		"repo_name":"matlab-comm"
+	},
+	"wz_toolbox":{
+		"repo_url":"https://github.com/mlwdjq/WZhu_toolbox.git",
+		"repo_name":"WZhu_toolbox"
 	}
-
 }
