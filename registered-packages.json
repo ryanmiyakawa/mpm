@@ -131,8 +131,8 @@
 		"repo_url":"https://github.com/cnanders/matlab-comm.git",
 		"repo_name":"matlab-comm"
 	},
-	"wz_toolbox":{
+	"WZhu_toolbox":{
 		"repo_url":"https://github.com/mlwdjq/WZhu_toolbox.git",
-		"repo_name":"wz_toolbox"
+		"repo_name":"WZhu_toolbox"
 	}
 }
