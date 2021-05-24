@@ -107,6 +107,14 @@
 		"repo_url":"https://github.com/cnanders/matlab-prolith-src.git",
 		"repo_name":"matlab-prolith-src"
 	},
+	"patrick_toolbox":{
+		"repo_url":"https://github.com/ryanmiyakawa/patrick-toolbox.git",
+		"repo_name":"patrick-toolbox"
+	},
+	"gds_diffraction":{
+		"repo_url":"https://github.com/mlwdjq/GDS-diffraction",
+		"repo_name":"gds-diffraction"
+	},
 	"matlab_ascii_comm":{
 		"repo_url":"https://github.com/cnanders/matlab-ascii-comm.git",
 		"repo_name":"matlab-ascii-comm"
@@ -126,5 +134,9 @@
 	"matlab_met5_dose_monitor":{
 		"repo_url":"https://github.com/cnanders/matlab-met5-dose-monitor.git",
 		"repo_name":"matlab-met5-dose-monitor"
+    },
+	"WZhu_toolbox":{
+		"repo_url":"https://github.com/mlwdjq/WZhu_toolbox.git",
+		"repo_name":"WZhu_toolbox"
 	}
 }
