@@ -131,6 +131,10 @@
 		"repo_url":"https://github.com/cnanders/matlab-comm.git",
 		"repo_name":"matlab-comm"
 	},
+	"matlab_met5_dose_monitor":{
+		"repo_url":"https://github.com/cnanders/matlab-met5-dose-monitor.git",
+		"repo_name":"matlab-met5-dose-monitor"
+    },
 	"WZhu_toolbox":{
 		"repo_url":"https://github.com/mlwdjq/WZhu_toolbox.git",
 		"repo_name":"WZhu_toolbox"
