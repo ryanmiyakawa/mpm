@@ -134,5 +134,9 @@
 	"WZhu_toolbox":{
 		"repo_url":"https://github.com/mlwdjq/WZhu_toolbox.git",
 		"repo_name":"WZhu_toolbox"
+	},
+	"cxro_intern_imaging_utils":{
+		"repo_url":"https://github.com/ryanmiyakawa/cxro-intern-imaging-utils.git",
+		"repo_name":"cxro-intern-imaging-utils"
 	}
 }
