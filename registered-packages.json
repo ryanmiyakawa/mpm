@@ -134,7 +134,7 @@
 	"matlab_met5_dose_monitor":{
 		"repo_url":"https://github.com/cnanders/matlab-met5-dose-monitor.git",
 		"repo_name":"matlab-met5-dose-monitor"
-    },
+	},
 	"WZhu_toolbox":{
 		"repo_url":"https://github.com/mlwdjq/WZhu_toolbox.git",
 		"repo_name":"WZhu_toolbox"
@@ -142,5 +142,9 @@
 	"cxro_intern_imaging_utils":{
 		"repo_url":"https://github.com/ryanmiyakawa/cxro-intern-imaging-utils.git",
 		"repo_name":"cxro-intern-imaging-utils"
+	},
+	"gdt2gds":{
+		"repo_url":"https://github.com/ryanmiyakawa/gdt2gds.git",
+		"repo_name":"gdt2gds"
 	}
 }
