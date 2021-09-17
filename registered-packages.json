@@ -147,8 +147,8 @@
 		"repo_url":"https://github.com/ryanmiyakawa/gdt2gds.git",
 		"repo_name":"gdt2gds"
 	},
-	"matalb_tektronix_afg_31021":{
-		"repo_url":"https://github.com/cnanders/matalb-tektronix-afg-31021.git",
-		"repo_name":"matalb-tektronix-afg-31021"
+	"matlab_tektronix_afg_31021":{
+		"repo_url":"https://github.com/cnanders/matlab-tektronix-afg-31021.git",
+		"repo_name":"matlab-tektronix-afg-31021"
 	}
 }
