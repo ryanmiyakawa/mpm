@@ -550,7 +550,7 @@ function [stPackages, exitFlag] = mpmInstallPackage(cPackageName, stPackages, dD
             cRepoName = getRepoByNumber(str2double(cPackageName));
             cPackageName = regexprep(cRepoName, '-', '_');
         else
-            error('Fatal error: package "%s" cannot be found', cPackageName);
+            error('Fatal error: package "%s" cannot be found. Try running "mpm update" to update this version of mpm with all registered packages.', cPackageName);
         end
     end
     
