@@ -150,5 +150,9 @@
 	"matlab_tektronix_afg_31021":{
 		"repo_url":"https://github.com/cnanders/matlab-tektronix-afg-31021.git",
 		"repo_name":"matlab-tektronix-afg-31021"
+	},
+	"matlab_euvtech_sms":{
+		"repo_url":"https://github.com/cnanders/matlab-euvtech-sms.git",
+		"repo_name":"matlab-euvtech-sms"
 	}
 }
