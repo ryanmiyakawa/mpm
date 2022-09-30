@@ -154,5 +154,9 @@
 	"matlab_euvtech_sms":{
 		"repo_url":"https://github.com/cnanders/matlab-euvtech-sms.git",
 		"repo_name":"matlab-euvtech-sms"
+	},
+	"prop_toolbox":{
+		"repo_url":"https://github.com/ryanmiyakawa/prop-toolbox.git",
+		"repo_name":"prop-toolbox"
 	}
 }
