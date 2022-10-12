@@ -160,7 +160,7 @@
 		"repo_name":"prop-toolbox"
 	},
 	"hologen":{
-		"repo_url":"https://github.com/mlwdjq/hologen/blob/master",
+		"repo_url":"https://github.com/mlwdjq/hologen.git",
 		"repo_name":"launch_HL"
 	}
 }
