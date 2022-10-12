@@ -158,5 +158,9 @@
 	"prop_toolbox":{
 		"repo_url":"https://github.com/ryanmiyakawa/prop-toolbox.git",
 		"repo_name":"prop-toolbox"
+	},
+	"hologen":{
+		"repo_url":"https://github.com/mlwdjq/hologen/blob/master/launch_HL.m",
+		"repo_name":"launch_HL"
 	}
 }
