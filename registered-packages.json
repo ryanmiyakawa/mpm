@@ -163,7 +163,7 @@
 		"repo_url":"https://github.com/mlwdjq/hologen.git",
 		"repo_name":"launch_HL"
 	},
-	"matalb_smaract_mcs":{
+	"matlab_smaract_mcs":{
 		"repo_url":"https://github.com/cnanders/matlab-smaract-mcs.git",
 		"repo_name":"matlab-smaract-mcs"
 	}
