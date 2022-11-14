@@ -166,5 +166,9 @@
 	"matlab_smaract_mcs":{
 		"repo_url":"https://github.com/cnanders/matlab-smaract-mcs.git",
 		"repo_name":"matlab-smaract-mcs"
+	},
+	"matlab_smaract_mcs2":{
+		"repo_url":"https://github.com/ryanmiyakawa/matlab-smaract-mcs2.git",
+		"repo_name":"matlab-smaract-mcs2"
 	}
 }
