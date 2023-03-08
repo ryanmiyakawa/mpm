@@ -170,5 +170,9 @@
 	"matlab_smaract_mcs2":{
 		"repo_url":"https://github.com/ryanmiyakawa/matlab-smaract-mcs2.git",
 		"repo_name":"matlab-smaract-mcs2"
+	},
+	"mic_plus":{
+		"repo_url":"https://github.com/ryanmiyakawa/micPlus.git",
+		"repo_name":"micPlus"
 	}
 }
