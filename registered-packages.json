@@ -170,5 +170,13 @@
 	"matlab_aerotech_ensemble":{
 		"repo_url":"https://github.com/cnanders/matlab-aerotech-ensemble.git",
 		"repo_name":"matlab-aerotech-ensemble"
+    },
+	"matlab_smaract_mcs2":{
+		"repo_url":"https://github.com/ryanmiyakawa/matlab-smaract-mcs2.git",
+		"repo_name":"matlab-smaract-mcs2"
+	},
+	"mic_plus":{
+		"repo_url":"https://github.com/ryanmiyakawa/mic-plus.git",
+		"repo_name":"mic-plus"
 	}
 }
