@@ -167,6 +167,10 @@
 		"repo_url":"https://github.com/cnanders/matlab-smaract-mcs.git",
 		"repo_name":"matlab-smaract-mcs"
 	},
+	"matlab_aerotech_ensemble":{
+		"repo_url":"https://github.com/cnanders/matlab-aerotech-ensemble.git",
+		"repo_name":"matlab-aerotech-ensemble"
+    },
 	"matlab_smaract_mcs2":{
 		"repo_url":"https://github.com/ryanmiyakawa/matlab-smaract-mcs2.git",
 		"repo_name":"matlab-smaract-mcs2"
