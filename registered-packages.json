@@ -174,5 +174,9 @@
 	"mic_plus":{
 		"repo_url":"https://github.com/ryanmiyakawa/mic-plus.git",
 		"repo_name":"mic-plus"
+	},
+	"matlab_panoramic_bridge":{
+		"repo_url":"https://github.com/ryanmiyakawa/matlab-panoramic-bridge.git",
+		"repo_name":"matlab-panoramic-bridge"
 	}
 }
