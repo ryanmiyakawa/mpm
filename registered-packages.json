@@ -170,7 +170,7 @@
 	"matlab_aerotech_ensemble":{
 		"repo_url":"https://github.com/cnanders/matlab-aerotech-ensemble.git",
 		"repo_name":"matlab-aerotech-ensemble"
-    },
+	},
 	"matlab_smaract_mcs2":{
 		"repo_url":"https://github.com/ryanmiyakawa/matlab-smaract-mcs2.git",
 		"repo_name":"matlab-smaract-mcs2"
@@ -182,5 +182,9 @@
 	"matlab_panoramic_bridge":{
 		"repo_url":"https://github.com/ryanmiyakawa/matlab-panoramic-bridge.git",
 		"repo_name":"matlab-panoramic-bridge"
+	},
+	"mat2gds":{
+		"repo_url":"https://github.com/ryanmiyakawa/mat2gds.git",
+		"repo_name":"mat2gds"
 	}
 }
