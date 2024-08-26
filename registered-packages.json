@@ -186,5 +186,9 @@
 	"matlab_imaq_cam":{
 		"repo_url":"https://github.com/ryanmiyakawa/matlab-imaq-cam.git",
 		"repo_name":"matlab-imaq-cam"
+	},
+	"mat2gds":{
+		"repo_url":"https://github.com/ryanmiyakawa/mat2gds.git",
+		"repo_name":"mat2gds"
 	}
 }
