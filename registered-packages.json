@@ -190,5 +190,9 @@
 	"mat2gds":{
 		"repo_url":"https://github.com/ryanmiyakawa/mat2gds.git",
 		"repo_name":"mat2gds"
+	},
+	"matlab_galil_tcp":{
+		"repo_url":"https://github.com/ryanmiyakawa/matlab-galil-tcp.git",
+		"repo_name":"matlab-galil-tcp"
 	}
 }
